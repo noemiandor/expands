@@ -282,6 +282,7 @@ runExPANdS<-function(SNV, CBS, maxScore=2.5, max_PM=6, min_CellFreq=0.1, precisi
   ####################
   ###Write output#####
   .writeExpandsOutput(X=dm, dirF,snvF,suffix=".sps", message="Subpopulation specific point mutations")
+  .writeExpandsOutput(X=finalSPs, dirF,snvF,suffix=".spstats", message="Summary file of detected subpopulations")
   
   if (plotF>0){
     try(plotSPs(dm[toUseIdx,],snvF),silent=FALSE);
