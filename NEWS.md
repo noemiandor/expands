@@ -1,3 +1,26 @@
+		CHANGES IN EXPANDS VERSION 1.7
+
+
+NEW FEATURES
+
+    o New subpopulation plotting options (function plotSPs).
+    o New phylogeny plotting option: user can choose between consensus and germline population to be included as control.
+    o Two additional output files created: subpopulation specific ploidy matrix and a summary file of all detected subpopulations, including information on the ancestor and the closest descendant of each subpopulation.
+    o 50 simulated samples of various genetic complexities and noise levels included for user testing.
+    o Whenever possible, SNVs are assigned not only to the subpopulation in which they first occurred, but also to descending subpopulations.
+
+BUG FIXES
+
+    o Fixed bug where rare scenarios would lead to wrong subpopulation specific ploidy assignments at specific mutated loci. Once the subpopulation size was assigned to a mutation, EXPANDS was using the magnitude of minuscule fluctuations in cellular frequencies to choose the “winner” among alternative ploidy scenarios (associated with the chosen subpopulation size). Instead it should be using the magnitude of the residual from equation 3-solutions to choose the ploidy scenario that best explains the data.
+ 
+
+OTHER CHANGES
+
+    o Improved subpopulation detection specificity, in particular for small subpopulations, by removing “doublet” subpopulations - where the heterozygous and homozygous state of a single subpopulation was wrongly split into two subpopulations.
+    o Improved mutation assignment to subpopulations. Within individual mutations, the sum of probabilities across input-cellfrequencies was always normalized to 1. This is important for clustering and used to be fine for the mutation assignment step as well for as long as there was just one distribution per mutation. But ever since version 1.6, EXPANDS covers the different evolutionary scenarios (SNV simultaneous with/before/after CNV, etc.) – so there are up to 4 distributions per mutation. These are no longer comparable amongst each other when normalizing. Normalization to 1 needs to be skipped for the mutation assignment step.
+
+
+
 		CHANGES IN EXPANDS VERSION 1.6.1
 
 BUG FIXES

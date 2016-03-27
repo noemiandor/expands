@@ -25,7 +25,7 @@
 	The subpopulation specific value assigned to each copy number fragment. Possible values: PM_cnv, PM, PM_B. Default: PM_cnv.
 }
 \item{keepAmbigSeg}{
-        Whether or not to assign ploidy to a subpopulation, \eqn{SP_i}, for a segment containing multiple \eqn{SP_i} specific ploidities, at least two of which have distinct magnitudes. If set to TRUE, the median ploidy is assigned as segment ploidy. Setting this parameter to TRUE is not recommended as the output will include segment-assignements where subpopulation specific ploidy is ambiguous.Recommend repeating circular binary segmentation with less stringent parameters instead, to reduce segment length and thus the prevalence of ambiguous assignements. Default: FALSE.
+        Whether or not to assign ploidy to a subpopulation, \eqn{SP_i}, for a segment containing multiple \eqn{SP_i} specific ploidities, at least two of which have distinct magnitudes. If set to TRUE, the median ploidy is assigned as segment ploidy. Setting this parameter to TRUE is not recommended as the output will include segment-assignements where subpopulation specific ploidy is ambiguous. Repeating circular binary segmentation with less stringent parameters typically reduces segment length and thus the prevalence of ambiguous assignements. Default: FALSE.
 }
 }
 

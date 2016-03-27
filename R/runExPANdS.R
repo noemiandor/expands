@@ -1,4 +1,4 @@
-runExPANdS<-function(SNV, CBS, maxScore=2.5, max_PM=6, min_CellFreq=0.1, precision=NA, plotF=2,snvF=NULL,maxN=8000,region=NA){
+runExPANdS<-function(SNV, CBS, maxScore=2.5, max_PM=6, min_CellFreq=0.1, precision=NA, plotF=2,snvF=NULL,maxN=8000,region=NA, peakselection='localsum'){
   if (!exists("SNV") || !exists("CBS")){
     print("Input-parameters SNV and/or CBS missing. Please add the paths to tabdelimited files containing the SNVs and copy numbers.");
     return();
@@ -159,6 +159,7 @@ runExPANdS<-function(SNV, CBS, maxScore=2.5, max_PM=6, min_CellFreq=0.1, precisi
   if (is.na(precision)){
     precision=0.1/log(length(idx_R)/7);
   }
+  print(paste('Peak selection strategy: ',peakselection))
   
   #############################
   ###Input parsing ends here###
@@ -188,8 +189,44 @@ runExPANdS<-function(SNV, CBS, maxScore=2.5, max_PM=6, min_CellFreq=0.1, precisi
   }
   ###########################
   ###Assigning SNVs to SPs###
-  aM = assignMutations( cfd$dm, finalSPs);
-  dm=aM$dm; finalSPs=aM$finalSPs;
+  aM = assignMutations( cfd$dm, finalSPs,peakselection=peakselection);
+  dm=aM$dm; SPs=aM$finalSPs;
+  
+  ###########################
+  ##Choose between doublets##
+  continueprune=TRUE;
+  while (!is.null(dim(SPs)) && nrow(SPs)>1 && continueprune){
+    x=sort(SPs[,'Mean Weighted'],index.return=TRUE);   SPs=SPs[x$ix,];
+    toRm=c();
+    for  (sp in 1:nrow(SPs)){
+      ii=sp; ##sp_i * x != sp_j for all x in 2:6 and all SP pairs (i,j)
+      x=2; ##Check for doublets only
+      maxDev=SPs[sp,'precision']* 2/3 ;
+      i_=which(abs(SPs[sp,'Mean Weighted']*x-SPs[,'Mean Weighted'])<maxDev);
+      ii=union(ii,i_); 
+      if( length(ii)>1 ){
+        ii=ii[which(SPs[ii,'nMutations']<0.6*max(SPs[ii,'nMutations'],na.rm=T))];; ##Keep only SP of max kurtosis
+        toRm=c(toRm,ii )
+      }
+    }
+    
+    toRm=unique(toRm)
+    if (!is.null(toRm) && length(toRm)>0){
+      iReassign=which(dm[,'SP'] %in% SPs[toRm,'Mean Weighted'] | dm[,'SP_cnv'] %in% SPs[toRm,'Mean Weighted'] );
+      print(paste('Reassigning SNVs after pruning',length(toRm),'doublet subpopulation(s). Pruned subpopulation(s):'))
+      print(SPs[toRm,'Mean Weighted'])
+      SPs=SPs[-toRm,, drop=FALSE];
+      aM = assignMutations( dm[iReassign,,drop=FALSE], SPs, peakselection=peakselection);
+      dm[iReassign,]=aM$dm; 
+      iSP=match(aM$finalSPs[,'Mean Weighted'],SPs[,'Mean Weighted']);
+      SPs[iSP,'nMutations']=SPs[iSP,'nMutations']+aM$finalSPs[,'nMutations'];
+      finalSPs=SPs;
+    }else{
+      continueprune=FALSE;
+      finalSPs=SPs;
+    }
+  }
+  
   #if (plotF>2){
   #    if(!require(rgl)){
   #	message("Plot supressed: Package rgl required for 3D plot of subpopulation clusters. Load this package before using this option.")

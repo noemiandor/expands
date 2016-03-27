@@ -3,7 +3,7 @@
 \title{Main Function}
 \description{Given a set of mutations, ExPANdS predicts the number of clonal expansions in a tumor, the size of the resulting subpopulations in the tumor bulk and which mutations accumulate in a cell prior to its clonal expansion. Input-parameters SNV and CBS hold the paths to tabdelimited files containing the point mutations and the copy numbers respectively. Alternatively SNV and CBS can be read into the workspace and passed to \code{runExPANdS}  as numeric matrices. The robustness of the subpopulation predictions by ExPANdS increases with the number of mutations provided. It is recommended that SNV contains at least 200 point mutations to obtain stable results.}
 \usage{runExPANdS(SNV, CBS, maxScore=2.5, max_PM=6, min_CellFreq=0.1, precision=NA,
- plotF=2,snvF=NULL,maxN=8000,region=NA)}
+ plotF=2,snvF=NULL,maxN=8000,region=NA,peakselection='localsum')}
 \arguments{
   \item{SNV}{
 	Matrix in which each row corresponds to a point mutation. Only mutations located on autosomes should be included. Columns in SNV must be labeled and must include: \cr
@@ -45,6 +45,9 @@
 	\bold{end} - the last genomic position of the segment.\cr
 	Default: SureSelectExome_hg19, comprising ca. 468 MB centered on the human exome. Alternative user supplied regions should also be coding regions, as the seletive pressure is higher as compared to non-coding regions.
 }
+  \item{peakselection}{
+       Strategy used when assigning mutations to subpopulations, to select mutation specific cell-frequency probability peaks. Options: 'maximum','localsum' (see also \code{\link{assignMutations}}).
+}
 }
 \value{List with fields:
         \item{finalSPs}{Matrix of predicted subpopulations. Each row corresponds to a subpopulation and each column contains information about that subpopulation, such as the size in the sequenced tumor bulk (column \bold{Mean Weighted}) and the noise score at which the subpopulation has been detected (column \bold{score}).}
@@ -55,7 +58,8 @@
 	\bold{f} - Deprecated. The maximum likelyhood cellular prevalence of this point mutation, before it has been assigned to SP. This value is based on the copy number and allele frequency of the mutation exclusively and is independent of other point mutations. Column SP is less sensitive to noise and considered the more accurate estimation of cellular mutation prevalence.\cr
 	\bold{PM} - the total ploidy of all alleles at the mutated genomic locus, in the subpopulation harboring the point mutation (SP).\cr
 	\bold{PM_B} - the ploidy of the B-allele at the mutated genomic locus, in the subpopulation harboring the point mutation (SP).\cr	     
-	\bold{PM_cnv} - the total ploidy of all alleles at the mutated genomic locus, in the subpopulation harboring an CNV (SP_cnv).\cr}
+	\bold{PM_cnv} - the total ploidy of all alleles at the mutated genomic locus, in the subpopulation harboring an CNV (SP_cnv).\cr
+	If phylogeny reconstruction was successful, matrix includes one additional column for each subpopulation from the phylogeny, indicating whether or not the point mutation is present in the corresponding subpopulation.\cr}
 	\item{densities}{Matrix as obtained by \code{\link{computeCellFrequencyDistributions}.} Each row corresponds to a mutation and each column corresponds to a cellular frequency. Each value \eqn{densities[i,j]} represents the probability that mutation \eqn{i} is present in a fraction \eqn{f} of cells, where \eqn{f} is given by: \eqn{colnames(densities[,j]).}}
 	\item{ploidy}{Matrix as obtained by \code{\link{assignQuantityToSP}.} Each row corresponds to a copy number segment, e.g. as obtained from a circular binary segmentation algorithm. Includes one additional column for each predicted subpopulation, containing the ploidy of each segment in the corresponding subpopulation.}
 	\item{tree}{An object of class "phylo" (library ape) as obtained by \code{\link{buildPhylo}.} Contains the inferred phylogenetic relationships between subpopulations.}

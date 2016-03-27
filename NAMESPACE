@@ -2,7 +2,7 @@ exportPattern("^[[:alpha:]]+")
 importFrom("grDevices", "colorRampPalette", "gray.colors", "rainbow")
 importFrom("graphics", "axis", "legend", "lines", "matpoints", "par")
 importFrom("stats", "as.dist", "cutree", "hclust", "kmeans", "ks.test",
-              "median", "quantile", "wilcox.test")
+              "median", "quantile", "wilcox.test", "dnorm")
 importFrom("utils", "packageVersion", "read.table", "write.table")
 import("rJava")
 import("flexmix")

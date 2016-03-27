@@ -16,6 +16,7 @@ for (k in 1:nrow(dm)){
 	if(class(output)=="try-error"){
          	errors=rbind(errors,output);
 	}else{
+	        output$p=output$p/sum(output$p,na.rm=T); ##under the assumption that relative rather than absolute probabilities matter for clustering
         	densities[k,]=output$p;
         	dm[k,"f"]=output$bestF;
         	success=success+1;

@@ -24,7 +24,7 @@
          If dm is available, an attempt will be made to: i) assign total ploidy (PM) to subpopulations with point mutations and ii) assign every mutation to >1 subpopulation according to the inferred phylogenetic relations between subpopulations. Default: NA.
 }
   \item{add}{
-       Artificial subpopulation to be added to the phylogeny (options: 'Germline','Consensus', NULL).
+       Artificial subpopulation to be included in phylogeny (options: 'Germline','Consensus', NULL).
 }
 }
 \details{

@@ -1,5 +1,8 @@
 plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", rawAF=F){
   
+  dm[,"%maxP"]=log(dm[,"%maxP"]);
+  dm[,"%maxP"]=dm[,"%maxP"]-min(dm[,"%maxP"],na.rm=T)+1;
+  
   keep=which(!is.na(dm[,"SP"]),); dm=dm[keep,];
   ia=order(dm[,"startpos"]);dm=dm[ia,];
   ia=order(dm[,orderBy]);dm=dm[ia,];
@@ -11,8 +14,15 @@ plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", 
   
   dm=.addColumn(dm,"AF_Tumor_Adjusted",NA);
   if(!rawAF){
-    dm[,"AF_Tumor_Adjusted"]=(dm[,"AF_Tumor"]*dm[,"CN_Estimate"]-dm[,"PN_B"])/(dm[,"PM_B"]-dm[,"PN_B"])
-    dm[,"AF_Tumor_Adjusted"]=dm[,"AF_Tumor_Adjusted"]*(dm[,"PM_B"]/dm[,"PM"])
+    iEq2=which(dm[,"PM_B"]==dm[,"PN_B"])
+    iEq3=setdiff(1:nrow(dm),iEq2);
+    if(!isempty(iEq3)){ ##Equation 3 informative
+      dm[iEq3,"AF_Tumor_Adjusted"]=(dm[iEq3,"AF_Tumor"]*dm[iEq3,"CN_Estimate"]-dm[iEq3,"PN_B"])/(dm[iEq3,"PM_B"]-dm[iEq3,"PN_B"])
+      dm[iEq3,"AF_Tumor_Adjusted"]=dm[iEq3,"AF_Tumor_Adjusted"]*(dm[iEq3,"PM_B"]/dm[iEq3,"PM"])
+    }
+    if(!isempty(iEq2)){##Equation 3 not informative --> use equation 2
+      dm[iEq2,"AF_Tumor_Adjusted"]=(dm[iEq2,"CN_Estimate"]-2)/(dm[iEq2,"PM"]-2)
+    }
     adjusted="Adjusted"
   }else{
     dm[,"AF_Tumor_Adjusted"]=dm[,"AF_Tumor"]
@@ -31,10 +41,10 @@ plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", 
   
   legend1=.plotSPPerVar(dm,17,1,0,legend);
   
-  x=gray.colors(100)
-  norm=1/length(x);
+  x=gray.colors(50)
+  # norm=1/length(x);
   for (k in 1:nrow(dm)){
-    ci=max(1,ceil(dm[k,"%maxP"]/norm));
+    ci=max(1,ceil(dm[k,"%maxP"])); #/norm
     matpoints(k,dm[k,"SP"],pch=15,col=x[ci]);
     if (k==1){
       legend1$text[length(legend1$text)+1]="SP";
@@ -73,7 +83,9 @@ plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", 
         if (any(!is.na(dm[idx,"PM"]))){
           matpoints(idx,0.1*(dm[idx,"PM"]-maxploidy),pch=20,col=x[i]);
           idy=intersect(idx,which(dm[,"PM"]!=dm[,"PM_cnv"]))
-          matpoints(idy,0.1*(dm[idy,"PM_cnv"]-maxploidy),pch=3,col=x[i]);
+          if(!isempty(idy)){
+            matpoints(idy,0.1*(dm[idy,"PM_cnv"]-maxploidy),pch=3,col=x[i]);
+          }
         }
       }
     }
@@ -97,7 +109,9 @@ plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", 
         if (any(!is.na(dm[idx,"PM"]))){
           matpoints(idx,0.1*(dm[idx,"PM"]-maxploidy),pch=20,col=x[i]);
           idy=intersect(idx,which(dm[,"PM"]!=dm[,"PM_cnv"]))
-          matpoints(idy,0.1*(dm[idy,"PM_cnv"]-maxploidy),pch=3,col=x[i]);
+          if(!isempty(idy)){
+            matpoints(idy,0.1*(dm[idy,"PM_cnv"]-maxploidy),pch=3,col=x[i]);
+          }
         }
       }
     }

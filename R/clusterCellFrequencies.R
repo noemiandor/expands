@@ -1,8 +1,8 @@
 clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0.1){ ##, plotF=0
-#   if(plotF>0 && !require(rgl)){
-#   	plotF=0;
-#   	message("Plot supressed:  Package rgl required for 3D plot of subpopulation clusters. Load this package befor using this option.")
-#   }
+  #   if(plotF>0 && !require(rgl)){
+  #   	plotF=0;
+  #   	message("Plot supressed:  Package rgl required for 3D plot of subpopulation clusters. Load this package befor using this option.")
+  #   }
   freq=as.numeric(colnames(densities));
   print(paste("Clustering ",nrow(densities),"probability distributions..."))
   cols=c("red","yellow","green","pink","magenta","cyan","lightblue","blue");
@@ -60,7 +60,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
       Tx=kmeans(densitiesOk[,idx], centers=2, nstart =10);
       Tx=Tx$cluster;
       if (length(unique(Tx))!=2 || length(which(Tx==1))<=1 ||
-            length(which(Tx==2))<=1){
+          length(which(Tx==2))<=1){
         next; #second cluster step unsuccessfull for this range;
       }
       
@@ -100,11 +100,11 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
         }
         SPs[k,"score"]=score;
         
-#         #plot option
-#         if (exists("plotF") && plotF>0 && nrep==tRep){
-#            col=cols[mod(k,length(cols))+1];
-#            count=.addTo3DPlot(count,clusterM,freq,col);
-#         }
+        #         #plot option
+        #         if (exists("plotF") && plotF>0 && nrep==tRep){
+        #            col=cols[mod(k,length(cols))+1];
+        #            count=.addTo3DPlot(count,clusterM,freq,col);
+        #         }
       },error = function(e) {
         print(e);
       })
@@ -124,10 +124,10 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
     return(NULL);
   }
   
-#   ##plot option
-#   if (plotF>0){
-#     title3d("",label);
-#   }
+  #   ##plot option
+  #   if (plotF>0){
+  #     title3d("",label);
+  #   }
   
   robSPs=.chooseRobustSPs(allSPs,precision,min_CellFreq);
   SPs=.collapseSimilar(robSPs$SPs,precision);
@@ -137,25 +137,6 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
     SPs=SPs[outcols];
   }else{
     SPs=SPs[,outcols];
-    ##Choose between doublets
-    x=sort(SPs[,'Mean Weighted'],index.return=TRUE);   SPs=SPs[x$ix,];
-    toRm=c();
-    for  (sp in 1:nrow(SPs)){
-      ii=sp; ##sp_i * x != sp_j for all x in 2:6 and all SP pairs (i,j)
-      for (x in 2:ceil(1/min_CellFreq)){
-        maxDev=SPs[sp,'precision']/(x-1);
-        i_=which(abs(SPs[sp,'Mean Weighted']*x-SPs[,'Mean Weighted'])<maxDev);
-        ii=union(ii,i_); 
-      }
-      if( length(ii)>1 ){
-        ii=ii[which(SPs[ii,'score']>min(SPs[ii,'score'],na.rm=T))];
-        toRm=c(toRm,ii )
-      }
-    }
-    toRm=unique(toRm)
-    if (!is.null(toRm)){
-      SPs=SPs[-toRm,];
-    }
   }
   
   print("Done.");
@@ -183,9 +164,9 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   for (i in 1:length(allSPs)){
     SPs=allSPs[[i]];
     if(is.null(dim(SPs))){
-#       if(SPs["Mean Weighted"]>1){ ##Should no longer be necessary
-#         SPs["Mean Weighted"]=1; 
-#       }
+      #       if(SPs["Mean Weighted"]>1){ ##Should no longer be necessary
+      #         SPs["Mean Weighted"]=1; 
+      #       }
       idx=which.min(abs(SPs["Mean Weighted"]-freq));
       SPsizes[i,idx]=SPs["score"];
     }else{
