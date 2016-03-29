@@ -1,7 +1,7 @@
 Package: expands
 Type: Package
 Title: Expanding Ploidy and Allele-Frequency on Nested Subpopulations
-Version: 1.7.1
+Version: 1.7.2
 Date: 2016-03-26
 Author: Noemi Andor
 Maintainer: Noemi Andor <expands.r@gmail.com>

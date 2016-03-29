@@ -1,7 +1,7 @@
 plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", rawAF=F){
   
-  dm[,"%maxP"]=log(dm[,"%maxP"]);
   dm[,"%maxP"]=dm[,"%maxP"]-min(dm[,"%maxP"],na.rm=T)+1;
+  dm[,"%maxP"]=50*dm[,"%maxP"]/max(dm[,"%maxP"],na.rm=T);
   
   keep=which(!is.na(dm[,"SP"]),); dm=dm[keep,];
   ia=order(dm[,"startpos"]);dm=dm[ia,];
@@ -41,7 +41,7 @@ plotSPs<-function(dm, sampleID=NA,cex=0.5, legend="CN_Estimate", orderBy="chr", 
   
   legend1=.plotSPPerVar(dm,17,1,0,legend);
   
-  x=gray.colors(50)
+  x=fliplr(gray.colors(50))
   # norm=1/length(x);
   for (k in 1:nrow(dm)){
     ci=max(1,ceil(dm[k,"%maxP"])); #/norm
