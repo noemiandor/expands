@@ -7,7 +7,7 @@
     List with three fields:\cr
 	\bold{cbs} - Matrix in which each row corresponds to a copy number segment. CBS is typically the output of a circular binary segmentation algorithm. Columns in CBS must be labeled and must include chr, startpos, endpos and CN_Estimate (see \code{\link{cbs}}).\cr
 	\bold{sps} - Output of \code{\link{runExPANdS}}. Matrix in which each row corresponds to a somatic mutations. Columns must include: chr - the chromosome on which each mutation is located; startpos - the genomic position of each mutation; SP - the subpopulation to which the mutation has been asssigned; PM - the total ploidy of all alleles at the mutated genomic locus, in the assigned subpopulation; PM_B - the ploidy of the B-allele at the mutated genomic locus, in the assigned subpopulation; CN_Estimate - the average ploidy (among all cells) of the locus in which the mutation is embedded (see also \code{\link{assignQuantityToMutation}}).\cr  
-	\bold{label} - Label denoting sample origin of each subpopulation matrix. 
+	\bold{labels} - Label denoting sample origin of each subpopulation matrix. 
     Entry is mandatory for each geographical sample.\cr
   }
   \item{out}{
