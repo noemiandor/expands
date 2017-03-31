@@ -1,3 +1,5 @@
+package src;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -106,12 +108,12 @@ public class ExPANdS {
 
 	/**
 	 * The ploidy of the subpopulation harboring the CNV (set only if SNV
-	 * occured before CNV)
+	 * ccurred before CNV)
 	 */
 	private int PM = Integer.MIN_VALUE;
 
 	/**
-	 * The size of the subpopulation harboring the CNV (set only if SNV occured
+	 * The size of the subpopulation harboring the CNV (set only if SNV occurred
 	 * before CNV)
 	 */
 	private double f_CNV = Double.NaN;
@@ -213,7 +215,7 @@ public class ExPANdS {
 			System.err
 					.print("Invalid value found for snv_cnv_flag: "
 							+ snv_cnv_flag
-							+ ". Valid values are: 1 (SNV only), 2 (CNV only) or 3 (SNV and CNV). ");
+							+ ". Valid values are: 1 (SNV only), 2 (CNV only), 3 (SNV and CNV) or 4 (SNV before CNV). ");
 			System.exit(1);
 		}
 	}
