@@ -1,3 +1,34 @@
+		CHANGES IN EXPANDS VERSION 2.0.0
+
+BUG FIXES
+
+    o Fixed bug in plotSPs(..): adjusted y-axis to include 0 (i.e. deletion scenario).
+
+NEW FEATURES
+
+    o Copy-neutral LOH are now modelled. 
+
+OTHER CHANGES	
+
+    o More robust calculation of cell frequency probabilities from kernel density estimates instead of Gaussian mixtures.
+    o Complete remodelling of java core to better transparency of the four different evolutionary scenarios.
+
+
+	
+		CHANGES IN EXPANDS VERSION 1.7.2		
+BUG FIXES
+
+    o Fixed bug in function plotSPs: range of %maxP values was too large to be covered by the gray color map, resulting in subpopulations not being displayed. %maxP values are now scaled between 0 and 50.
+
+
+
+                CHANGES IN EXPANDS VERSION 1.7.1
+BUG FIXES
+
+    o Summary file of detected subpopulations was not included to the list of output files.
+
+
+
 		CHANGES IN EXPANDS VERSION 1.7
 
 

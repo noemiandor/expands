@@ -11,7 +11,7 @@
 	\bold{startpos} - the genomic position of each mutation.
 }
   \item{cbs}{
-	Matrix in which each row corrsponds to a copy number fragment as computed by a circular binary segmentation algorithm. Has to contain at least the following columnnames:\cr
+	Matrix in which each row corrsponds to a copy number segment as calculated by a circular binary segmentation algorithm. Has to contain at least the following columnnames:\cr
 	\bold{chr} - chromosome;\cr
 	\bold{startpos} - the first genomic position of a copy number segment; \cr
 	\bold{endpos} - the last genomic position of a copy number segment; \cr

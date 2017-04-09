@@ -1,7 +1,7 @@
 \name{clusterCellFrequencies}
 \alias{clusterCellFrequencies}
 \title{Clustering of cellular frequency probability distributions}
-\description{Calculates overrepresented cell frequencies using a two-step approach. Based on the assumption that passenger mutations occur within a cell prior to the driver event that initiates the expansion, each clonal expansion should be marked by multiple mutations. Thus mutations and copy number variations that took place in a cell prior to a clonal expansion should be present in a similar fraction of cells and leave a similar "frequency-trace" in the subsequent clonal expansion.}
+\description{Calculates overrepresented cell frequencies using a two-step approach. Based on the assumption that passenger mutations occur within a cell prior to the driver event that initiates the expansion, each clonal expansion should be marked by multiple mutations. Thus mutations and copy number variations that took place in a cell prior to a clonal expansion should be present in a similar fraction of cells and leave a similar "frequency-trace" during their propagation.}
 \usage{clusterCellFrequencies(densities, precision, nrep=30, min_CellFreq=0.1)}
 \arguments{
   \item{densities}{

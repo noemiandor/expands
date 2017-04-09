@@ -20,8 +20,8 @@
         \bold{chr} - the chromosome on which each point mutation is located;\cr
         \bold{startpos} - the genomic position of each point mutation; \cr	
         \bold{PM} - the total ploidy of all alleles at the mutated genomic locus, in the assigned subpopulation.\cr
-		\bold{PM_B} - the ploidy of the B-allele at the mutated genomic locus, in the assigned subpopulation.\cr  
-         If dm is available, an attempt will be made to: i) assign total ploidy (PM) to subpopulations with point mutations and ii) assign every mutation to >1 subpopulation according to the inferred phylogenetic relations between subpopulations. Default: NA.
+		    \bold{PM_B} - the ploidy of the B-allele at the mutated genomic locus, in the assigned subpopulation.\cr  
+         If dm is available, an attempt will be made to assign every mutation to >1 subpopulation according to the inferred phylogenetic relations between subpopulations.
 }
   \item{add}{
        Artificial subpopulation to be included in phylogeny (options: 'Germline','Consensus', NULL).

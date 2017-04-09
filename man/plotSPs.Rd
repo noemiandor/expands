@@ -13,11 +13,13 @@ plotSPs(dm, sampleID=NA, cex=0.5, legend="CN_Estimate", orderBy="chr", rawAF=F)
         \bold{AF_Tumor} - the allele-frequency of each mutation;\cr
         \bold{CN_Estimate} - the absolute copy number estimated for each segment;\cr
         \bold{PN_B} - the ploidy of the B-allele in normal cells (binary variable: 1 if the mutation is a germline variant, 0 if somatic);\cr
-	\bold{SP} - the subpopulation to which each point mutation has been assigned (as fraction of cells in the tumor bulk);\cr
-	\bold{SP_cnv} - the subpopulation to which the CNV has been asssigned (if an CNV exists at this locus); \cr
-	\bold{\%maxP} -	the confidence with which the mutation has been assigned to the correspoding subpopulation;\cr
-	\bold{PM} - the total ploidy of all alleles at the mutated genomic locus, in subpopulation SP.\cr
-	\bold{PM_cnv} - the total ploidy of all alleles at the mutated genomic locus, in the subpopulation harboring an CNV (SP_cnv).
+	      \bold{SP} - the subpopulation to which each point mutation has been assigned (as fraction of cells in the tumor bulk);\cr
+	      \bold{\%maxP} -	the confidence with which the mutation has been assigned to the correspoding subpopulation;\cr
+	      \bold{SP_cnv} - the subpopulation to which the CNV has been asssigned; \cr
+	      \bold{PM} - the total ploidy of all alleles at the mutated genomic locus, in subpopulation SP.\cr
+	      \bold{PM_cnv} - the total ploidy of all alleles at the mutated genomic locus in subpopulation SP_cnv.\cr
+	      \bold{PM_B} - the ploidy of the mutated allele in subpopulation SP.\cr
+	      \bold{PM_B_cnv} - the ploidy of the mutated allele in subpopulation SP_cnv.
 }
   \item{sampleID}{
 	The name of the sample in which the mutations have been detected.

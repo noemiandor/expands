@@ -1,5 +1,4 @@
 buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
-  #library(ape)
   out=list("tree"=NULL,"dm"=dm);
   ii=grep("SP",colnames(ploidy));
   cnv=ploidy[,ii];
@@ -22,34 +21,10 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
     }
   }
   
-  toRm=c(); 
   ##distance matrix from pairwise alignments
-  cols=gsub(" ","",colnames(cnv));
-  D=matrix(matrix(1,ncol(cnv),ncol(cnv)), nrow=ncol(cnv), ncol=ncol(cnv), dimnames=list(cols,cols));
-  for (i in 1:ncol(cnv)){
-    for (j in i:ncol(cnv)){
-      ii=which(!is.na(cnv[,i]) & !is.na(cnv[,j]));
-      if (length(ii)==0){
-        D[i,j]<-D[j,i]<-NA;
-        next;
-      }
-      x=cnv[ii,i];      y=cnv[ii,j];
-      dd=length(which(x!=y))/length(ii);
-      if (i!=j){
-        dd=dd+0.3;
-      }
-      D[i,j]<-D[j,i]<-dd
-    }
-    if (any(is.na(D[i,1:i]))){
-      toRm=cbind(toRm,i);#remove NAs
-    }
-  }
-  #remove NAs
-  if (length(toRm)>0){
-    print(paste("Insufficient copy number segments for ",rownames(D)[toRm],". SP excluded from phylogeny",sep=""))
-    D=D[-toRm,];
-    D=D[,-toRm];
-  }
+  # D=.calculateHYpergeometricDistance(cnv);
+  D=.calculateHammingDistance(cnv)
+  
   
   if(is.null(nrow(D)) || nrow(D)<3){
     print("No two SPs found between which distance could be calculated. Aborting phylogeny reconstruction");
@@ -85,6 +60,7 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
 }
 
 .assignSNVsToMultipleSPs <-function(dm,outF){
+  dm[, c("SP_cnv","SP")]=round(1000*dm[, c("SP_cnv","SP")])/1000
   if (!requireNamespace("phylobase", quietly = TRUE)) {
     print("Package \'phylobase\' is needed for assigning SNVs to Multiple SPs but is not installed.")
     return(dm);
@@ -100,8 +76,7 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
   print("Assigning SNVs to SPs...")
   spsInTree=names(phylobase::getNode(tr,type="tip"));  
   SPs = sort(unique(c(dm[, "SP_cnv"],dm[,"SP"])))
-  spSizes = unique(round(SPs * 1000)/1000)
-  spNames= paste("SP_", as.character(spSizes), sep = "");
+  spNames= paste("SP_", SPs, sep = "");
   x = colnames(dm)
   x[(length(x) + 1):(length(x) + length(SPs))] =spNames
   x=c(x,"Clone");
@@ -110,9 +85,9 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
   ##Save ancestor-to-descendant (rows-to-columns) relations:
   spRelations=matrix(0,length(spNames),length(spNames));
   rownames(spRelations)=spNames; colnames(spRelations)=spNames;
-    
+  
   for (k in 1:nrow(dm)) {
-    thisSP = paste("SP_", as.character(round(dm[k,"SP"] * 1000)/1000),sep="");
+    thisSP = paste("SP_", dm[k,"SP"],sep="");
     if (!is.na(dm[k,"SP"])){
       dm[k,gsub(" ","_",thisSP)]=1; #dm[k,"PM_B"]; binary assignment for now 
     }
@@ -123,7 +98,7 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
       print(paste("Assigning SPs for SNV", k, 
                   "out of ", nrow(dm), "..."))
     }
-    dm=.propagateSNVToMultipleSPs(thisSP,dm,k,tr,spSizes)
+    dm=.propagateSNVToMultipleSPs(thisSP,dm,k,tr,SPs)
     spRelations[thisSP,dm[k,colnames(spRelations)]==1]=1;
     spRelations[thisSP,thisSP]=0
   }
@@ -188,3 +163,61 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
   return(desc);
 }
 
+## @TODO: test .calculateHYpergeometricDistance(...)
+# .calculateHYpergeometricDistance<-function(dmx){
+#   cols=gsub(" ","",colnames(dmx));
+#   D=matrix(matrix(1,ncol(dmx),ncol(dmx)), nrow=ncol(dmx), ncol=ncol(dmx), dimnames=list(cols,cols));
+#   for (SP_A in colnames(dmx)){
+#     for (SP_B in colnames(dmx)){
+#       ii1=which(dmx[,SP_A]>0); ##white balls in urn - SNVs in this primary SP
+#       ij=which(dmx[,SP_A]==0);##black balls in urn - SNVs in other primary SP
+#       ii2=which(dmx[,SP_B]>0); ##balls drawn from urn - SNVs in this recurrent SP
+#       o=intersect(ii1,ii2); ##white balls drawn from urn - overlapping SNVs in this recurrent SP
+#       D[SP_A,SP_B]=1-phyper(length(o)-1, length(ii1), length(ij), length(ii2))
+#       if (SP_A!=SP_B){
+#         D[SP_A,SP_B]=D[SP_A,SP_B]+0.3;
+#       }
+#     }
+#   }
+#   
+#   toRm=which(apply(is.na(D),1,any))
+#   #remove NAs
+#   if (length(toRm)>0){
+#     print(paste("Insufficient copy number segments for ",rownames(D)[toRm],". SP excluded from phylogeny",sep=""))
+#     D=D[-toRm,];
+#     D=D[,-toRm];
+#   }
+#   return(D)
+# }
+
+.calculateHammingDistance<-function(cnv){
+  toRm=c();
+  cols=gsub(" ","",colnames(cnv));
+  D=matrix(matrix(1,ncol(cnv),ncol(cnv)), nrow=ncol(cnv), ncol=ncol(cnv), dimnames=list(cols,cols));
+  for (i in 1:ncol(cnv)){
+    for (j in i:ncol(cnv)){
+      ii=which(!is.na(cnv[,i]) & !is.na(cnv[,j]));
+      if (length(ii)==0){
+        D[i,j]<-D[j,i]<-NA;
+        next;
+      }
+      x=cnv[ii,i];      y=cnv[ii,j];
+      dd=length(which(x!=y))/length(ii);
+      if (i!=j){
+        dd=dd+0.3;
+      }
+      D[i,j]<-D[j,i]<-dd
+    }
+    if (any(is.na(D[i,1:i]))){
+      toRm=cbind(toRm,i);#remove NAs
+    }
+  }
+  
+  #remove NAs
+  if (length(toRm)>0){
+    print(paste("Insufficient copy number segments for ",rownames(D)[toRm],". SP excluded from phylogeny",sep=""))
+    D=D[-toRm,];
+    D=D[,-toRm];
+  }
+  return(D)
+}

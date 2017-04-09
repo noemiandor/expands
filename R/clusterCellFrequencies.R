@@ -110,8 +110,8 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
       })
     }    
     ##collapse similar
-    ia=order(SPs[,"Mean Weighted"],decreasing=T);
-    SPs=SPs[ia,];
+    ia=order(SPs[,"Mean Weighted",drop=F],decreasing=T);
+    SPs=SPs[ia,,drop=F];
     SPs=.collapseSimilar(SPs,precision);
     ##print(paste("Found ",size(SPs,1),"SPs."));
     if (size(SPs,1)>0){
@@ -133,11 +133,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   SPs=.collapseSimilar(robSPs$SPs,precision);
   
   outcols=c("Mean Weighted","score","precision","nMutations");##printlay only these columns
-  if (is.null(dim(SPs)) || nrow(SPs)==1){
-    SPs=SPs[outcols];
-  }else{
-    SPs=SPs[,outcols];
-  }
+  SPs=SPs[,outcols,drop=F];
   
   print("Done.");
   return(SPs);
@@ -215,7 +211,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
 .collapseSimilar <-function(SPs,precision){
   isNaNIdx=which(is.na(SPs[,"Mean Weighted"]));
   if (!isempty(isNaNIdx)){
-    SPs=SPs[-isNaNIdx,];
+    SPs=SPs[-isNaNIdx,,drop=F];
   }
   if (size(SPs,1)<2){
     return(SPs);
@@ -226,10 +222,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
     if (length(idx)>1){
       ia=which.min(SPs[idx,"wilcTest"]);
       rmIdx=setdiff(idx,idx[ia]);
-      SPs=SPs[-rmIdx,];
-    }
-    if (is.null(dim(SPs))){
-      break;
+      SPs=SPs[-rmIdx,,drop=F];
     }
   }
   return(SPs);

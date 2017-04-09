@@ -1,0 +1,47 @@
+##expands_2.0.0
+#Number of samples: 350
+#Median of number of simulated mutations per sample: 195
+#MAD of number of simulated mutations per sample: 14.1907
+#Genome affacted by CNVs per subpopulation: 30%
+#Median number of simulated clonal expansions: 3
+#Variance of number of simulated clonal expansions: 3.454
+#SNV-CNV pairs with co-occurrence assumption violation: 53.3%
+#          MAXDEV: 0.05 
+#          MAXSCORE: 100 
+#          outputCategory: simulation
+
+
+------------------------------------------------------------
+-----SIMULATED VS. PREDICTED NUMBER OF SUBPOPULATIONS-------
+------------------------------------------------------------
+Allele frequency s.e.m	r (Pearson)	p-value	nSamples
+0	0.60690	0.00000	50.00000	
+0.0038462	0.66613	0.00000	50.00000	
+0.0047619	0.53634	0.00006	50.00000	
+0.00625	0.54326	0.00005	50.00000	
+0.0090909	0.57496	0.00001	50.00000	
+0.016667	0.60352	0.00000	50.00000	
+0.1	0.37738	0.00690	50.00000	
+
+------------------------------------
+-----SUBPOPULATION DETECTION--------
+------------------------------------
+SPs	SNVs/SP	sensitivity	specificity	accuracy
+6 to 8	30	0.71149	0.79310	0.75229	
+5	40	0.75263	0.66665	0.70964	
+4	50	0.78928	0.61992	0.70460	
+3	70	0.81529	0.52461	0.66995	
+2	100	0.91192	0.51879	0.71535	
+1	200	0.61125	0.38661	0.49893	
+
+---------------------------------------------
+-----SNV ASSIGNMENT TO SUBPOPULATIONS--------
+---------------------------------------------
+Allele frequency s.e.m	%Correctly assigned(Co-Occurrence assumption violation)	%Correctly assigned(No co-Occurrence assumption violation)
+        0	42.68657	48.91775	
+0.0038462	62.57669	57.51674	
+0.0047619	58.19936	58.94284	
+  0.00625	53.01587	57.05484	
+0.0090909	60.97561	54.02726	
+ 0.016667	52.58359	52.07430	
+      0.1	19.01639	14.55224

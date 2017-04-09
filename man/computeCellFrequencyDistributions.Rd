@@ -2,7 +2,7 @@
 \alias{computeCellFrequencyDistributions}
 \title{Gathering of cell frequency probability distributions}
 \description{Computes the probability distributions of cell frequencies, by calling \code{\link{cellfrequency_pdf}} for each mutation separately.}
-\usage{computeCellFrequencyDistributions(dm, max_PM=6, precision, min_CellFreq=0.1)}
+\usage{computeCellFrequencyDistributions(dm, max_PM=6, precision, min_CellFreq=0.1, norm=TRUE)}
 \arguments{
   \item{dm}{
 	 Matrix in which each row corrsponds to a mutation. Has to contain at least the following columnnames: \cr 
@@ -19,6 +19,8 @@
 }
   \item{min_CellFreq}{
         Lower boundary for the prevalence of a mutated cell (default: 0.1).}
+  \item{norm}{
+        TRUE if cell frequency probability distributions should be scaled to 1, FALSE otherwise.}
 }
 
 \value{List with three fields:

@@ -1,10 +1,9 @@
-buildMultiSamplePhylo<-function (samGr,out,treeAlgorithm="bionjs", ambigSg=F,plotF=1,spRes=1){
-  library(expands)
+buildMultiSamplePhylo<-function (samGr,out,treeAlgorithm="bionjs", ambig=F,plotF=1,spRes=1){
   if(!is.na(spRes) && !spRes){
     print("Warning: Calculating cross-sample phylogeny at metapopulation resolution")
   }
   cols = c("Count", "chr", "startpos", "endpos",  "CN_Estimate")
-  dummySNVcols=c("Count","endpos");
+  dummySNVcols=c("Count","endpos","Clone");
   allCBS = c()
   allDM = c()
   dmPris=list();
@@ -59,13 +58,9 @@ buildMultiSamplePhylo<-function (samGr,out,treeAlgorithm="bionjs", ambigSg=F,plo
   for (i in 1:n_Samples) {
     dmPri = dmPris[[i]];
     print(paste("Processing sample ", i, " out of ",n_Samples,sep=""));
-    aQpriCBS = try(assignQuantityToSP(allCBS[, cols], dmPri,  colName = "PM",
-                                      keepAmbigSeg = ambigSg), silent = FALSE)
-    aQpriCBS=aQpriCBS$ploidy;
+    aQpriCBS = try(assignQuantityToSP(cbs = allCBS[, cols], dm = dmPri, C=list(sps=c("SP"),pms = c("PM")), ambig = ambig), silent = FALSE)
     dmPri[, "PM_B"] = sign(dmPri[, "PM_B"])
-    aQpriDM = try(assignQuantityToSP(allDM[, cols], dmPri, 
-                                     colName = "PM_B"), silent = FALSE)
-    aQpriDM=aQpriDM$ploidy;
+    aQpriDM = try(assignQuantityToSP(cbs = allDM[, cols], dm = dmPri, C=list(sps=c("SP"),pms = c("PM_B"))), silent = FALSE)
     firstI = min(grep("SP", colnames(aQpriCBS)))
     aqCBS = cbind(aqCBS, aQpriCBS[, firstI:ncol(aQpriCBS)])
     aqDM = cbind(aqDM, aQpriDM[, firstI:ncol(aQpriDM)])
@@ -81,7 +76,7 @@ buildMultiSamplePhylo<-function (samGr,out,treeAlgorithm="bionjs", ambigSg=F,plo
     print("Error encountered while reconstructing phylogeny")
   }
   else {
-    trout = buildPhylo(aQ, out, treeAlgorithm = treeAlgorithm)
+    trout = buildPhylo(ploidy = aQ, outF = out, treeAlgorithm = treeAlgorithm)
     tr=trout$tree;
     if (plotF>0){
       jet <- colorRampPalette(c("#00007F", "blue", "#007FFF", 
