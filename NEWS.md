@@ -1,3 +1,24 @@
+		CHANGES IN EXPANDS VERSION 2.1.0
+
+BUG FIXES
+
+    o Fixed undesired behaviour in Subpopulations.java where integer division was rounded thereby rejecting valid mutated and wild type ploidy configurations.
+    o Fixed bug in runExPANdS.R where the number of mutations per subpopulation was recorded incorrectly in .spstats output.
+    o Fixed axis-range bug in plotSPs.R.
+
+NEW FEATURES
+
+    o Included parameter ploidy in runExPANdS.R, allowing specification of non-diploid background ploidies (e.g. for near-triploid cell lines).
+    o Parallel computing option for runExPANdS.R (parameter nc).
+
+OTHER CHANGES	
+    o Copy-neutral LOH are no longer modelled.
+    o Fit of copy number status has a higher weight (x^2) than fit of point mutation status (x^1).
+    o Likelihood of mutation events is no longer higher in cancer-cell populations known to be non-founders.
+    o Binary option 'ambig' in assignQuantityToSP.R replaced with parameter 'e', allowing user to finetune amount of accepted ambiguity within a  continuous range (e==0 is equivalent to former ambig==F, while e>0 corresponds to ambig==T).
+
+
+
 		CHANGES IN EXPANDS VERSION 2.0.0
 
 BUG FIXES

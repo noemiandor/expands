@@ -11,8 +11,8 @@
 	 \bold{endpos} - same as above \cr
 	 \bold{REF} - ASCII code of the reference nucleotide (in hg18/hg19) \cr
 	 \bold{ALT} - ASCII code of the B-allele nucleotide \cr
-	 \bold{AF_Tumor} - allele frequeny of B-allele \cr
-	 \bold{PN_B} - ploidy of B-allele in normal cells. A value of 0 indicates that the mutation has only been detected in the tumor sample (i.e. somatic mutations). A value of 1 indicates that the mutation is also present in the normal (control) sample, albeit at reduced allele frequency (i.e. mutation is consequence of LOH). Other mutations should not be included.
+	 \bold{AF_Tumor} - allele frequency of B-allele \cr
+	 \bold{PN_B} - count of B-allele in normal cells. A value of 0 indicates that the mutation has only been detected in the tumor sample (i.e. somatic mutations). A value of 1 indicates that the variant is also present in the normal (control) sample, albeit at reduced allele frequency (i.e. this is a germline variant, which passed the calling filter due to the presence of an LOH event). Other mutations should not be included.
 }
 
 \source{Data derived from The Cancer Genome Atlas (TCGA).}

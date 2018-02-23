@@ -17,16 +17,16 @@ import core.utils.NotAValidCompositionException;
  * Class modeling all possible subpopulation scenarios that can exist for a given mutated locus. Only one of these scenarios can account for the allele frequency and copy number measured at the locus.
  * For each scenario, model starts with a germline population that will be the root of all other modeled subpopulations. 
  * First subpopulation (SP1) modeled to evolve from the germline population is always the one carrying a CNV. 
- * Subsequent subpopulations are always defined by an SNV and are modeled in relation to SP1, either as:
+ * Subsequent subpopulations are defined by an SNV and are modeled in relation to SP1, either as:
  * - its parent
- * - its child (including twin - i.e. the two SPs are de-facto the same)
+ * - its child (including twin - i.e. the two SPs are de-facto the same) 
  * - its sibling
  * @author noemi
  *
  */
 public class ParallelSubpopulations {
 	/**
-	 * Subpopulation scenarios where the subpopulation carrying the point mutation gave rise to the subpopulation carrying the CNV.
+	 * Subpopulation scenarios where the subpopulation carrying either a point mutation or CNV gave rise to the subpopulation carrying a (possibly 2nd) CNV.
 	 * Child acquiring the CNV is of interest too.
 	 */
 	private LinkedHashSet<Subpopulation> snvBeforeCNV;
@@ -52,24 +52,31 @@ public class ParallelSubpopulations {
 	 * @param enforceCoocurrence - if true, the only scenarios modeled will be the ones where the point mutation and the CNV were propagated during the same clonal expansion.If set to false, all scenarios will be modeled.
 	 * @throws NotAValidCompositionException
 	 */
-	public ParallelSubpopulations(double cn, double af, int pnb, boolean enforceCoocurrence) throws NotAValidCompositionException {
+	public ParallelSubpopulations(double cn, double af, int pnb, boolean enforceCoocurrence, int backgroundploidy) throws NotAValidCompositionException {
 		snvBeforeCNV = new LinkedHashSet<Subpopulation>();
 		snvAfterCNV = new LinkedHashSet<Subpopulation>();
 		snvSiblingOfCNV = new LinkedHashSet<Subpopulation>();
 
-		Subpopulation root = new Subpopulation(1, 2, pnb, null);
+		Subpopulation root = new Subpopulation(1, backgroundploidy, pnb, null);
 		HashSet<Subpopulation> sps = root.getPotentialChildren(new CopyNumber(
 				cn)); //First subpopulation modeled is always the one carrying a CNV
 		Iterator<Subpopulation> iter = sps.iterator();
 		while (iter.hasNext()) {
 			Subpopulation sp = iter.next();
 			AFtimesCopyNumber afxcn = new AFtimesCopyNumber(af * cn);
-			if(enforceCoocurrence || root.getPmb()==1){ //Co-occurrence always enforced when we're dealing with LOH <=> no more than 1 event per aberration-type
-				Common.setALLOWED_FREQUENCIES(new double[]{sp.getCellularFrequency()});
-			} else{
+
+			if(enforceCoocurrence || root.getPmb()==1){
+				Common.setALLOWED_SP_FREQUENCIES(new double[]{sp.getCellularFrequency()}); //Co-occurrence assumption has to hold in case of LOH
+			}else{
+				//				if(root.getPmb()==1){
+				//					eventBeforeCNV.addAll(sp.getPotentialParentsWithCNV(afxcn)); //there is a parental SP with CNV that gave rise to this SP. 
+				//					//The parent does carry the germline SNP
+				//				}else{
 				snvBeforeCNV.addAll(sp.getPotentialParents(afxcn)); //there is a parental SP with a point mutation that gave rise to this SP
 				snvSiblingOfCNV.addAll(sp.getPotentialSiblings(afxcn));//the two SPs are evolved from a common ancestor rather than from each other  <=> SNV and CNV are not tight
+				//				}
 			}
+
 			snvAfterCNV.addAll(sp.getPotentialChildren(afxcn));//this SP gave rise to a SP with a point mutation
 		}
 
@@ -116,9 +123,7 @@ public class ParallelSubpopulations {
 			}
 
 			for(Subpopulation sp:sps){
-				//				double value=1/(sp.getDeviation()*sp.getRoot().eventsTo(sp));
-				//increasing weight of somatic events count minimization: 
-				double value=1/(sp.getDeviation()*Math.exp(1.0*sp.getRoot().eventsTo(sp)));
+				double value=1/(sp.getAbsoluteDeviation()*sp.getRoot().eventsTo(sp));
 				if(d.containsKey(sp.getCellularFrequency())){
 					value+=d.get(sp.getCellularFrequency());
 				}
@@ -144,6 +149,7 @@ public class ParallelSubpopulations {
 				//				System.out.println(sp.toString()+":"+pmax);
 			}
 		}
+		//		System.out.println(sp.getKey().getRoot().eventsTo(sp.getKey()));	
 		return(sp);
 	}
 
@@ -160,8 +166,8 @@ public class ParallelSubpopulations {
 		// Child acquiring the CNV is of interest too
 		while (iter.hasNext()) {
 			Subpopulation sp = iter.next();
-			double value=1/(sp.getDeviation()  	* sp.getRoot().eventsTo(sp)+
-					sp.getChild().getDeviation()* sp.eventsTo(sp.getChild()));
+			double x=sp.getAbsoluteDeviation() + sp.getChild().getAbsoluteDeviation();
+			double value=1/( x * (sp.getRoot().eventsTo(sp) + sp.eventsTo(sp.getChild())) );
 			if(d.containsKey(sp)){
 				value+=d.get(sp);
 			}
@@ -171,17 +177,18 @@ public class ParallelSubpopulations {
 		// Parent acquiring the CNV is of interest too
 		iter = snvAfterCNV.iterator();
 		while (iter.hasNext()) {
-			Subpopulation sp = iter.next();
-			double x=sp.getParent().getDeviation() * sp.getRoot().eventsTo(sp.getParent());
+			Subpopulation sp = iter.next();			
+			double x=sp.getParent().getAbsoluteDeviation() + sp.getAbsoluteDeviation();
 			double value;
-			if(sp.getParent().eventsTo(sp)==0){  //the two SPs are de-facto the same
-				value=1/(x+ sp.getDeviation() * sp.getRoot().eventsTo(sp));
+			if(Math.log(sp.getParent().eventsTo(sp))==0){  //the two SPs are de-facto the same			
+				value=1/( x  * sp.getRoot().eventsTo(sp));
 			}else{ //parent gave rise to child - not the same SPs
-				value=1/(x+ sp.getDeviation() * sp.getParent().eventsTo(sp));
+				value=1/( x * (sp.getRoot().eventsTo(sp.getParent()) + sp.getParent().eventsTo(sp)));
 			}
 			if(d.containsKey(sp)){
 				value+=d.get(sp);
 			}
+
 			d.put(sp, value);
 		}
 
@@ -189,8 +196,8 @@ public class ParallelSubpopulations {
 		iter = snvSiblingOfCNV.iterator();
 		while (iter.hasNext()) {
 			Subpopulation sp = iter.next();
-			double value=1/(sp.getDeviation()  	   * sp.getRoot().eventsTo(sp)+
-					sp.getSibling().getDeviation() * sp.getRoot().eventsTo(sp.getSibling()));
+			double x = sp.getAbsoluteDeviation()  + sp.getSibling().getAbsoluteDeviation();
+			double value=1/( x * (sp.getRoot().eventsTo(sp)  + sp.getRoot().eventsTo(sp.getSibling())));
 			if(d.containsKey(sp)){
 				value+=d.get(sp);
 			}
@@ -198,6 +205,5 @@ public class ParallelSubpopulations {
 		}
 		return (d);
 	}
-
 
 }

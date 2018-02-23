@@ -2,20 +2,29 @@
 \alias{assignMutations}
 \title{Mutation Assignment}
 \description{Assigns mutations to previously predicted subpopulations.}
-\usage{assignMutations(dm, finalSPs, max_PM=6)}
+\usage{assignMutations(dm, finalSPs, max_PM=6, cnvSPs=NULL, ploidy = 2, verbose = T)}
 \arguments{
   \item{dm}{
-       Matrix in which each row corrsponds to a mutation. Has to contain at least the following columnnames:\cr 
+       Matrix in which each row corresponds to a mutation. Has to contain at least the following column names:\cr 
 	\bold{chr} - the chromosome on which each mutation is located; \cr
 	\bold{startpos} - the genomic position of each mutation;\cr
 	\bold{AF_Tumor} - the allele-frequency of each mutation;\cr
-	\bold{PN_B} - the ploidy of the B-allele in normal (non-tumor) cells (binary variable: 1 if the mutation is a germline variant, 0 if somatic).
+	\bold{PN_B} - the count of the B-allele in normal (non-tumor) cells (binary variable: 1 if the mutation is a germline variant, 0 if somatic).
 }
   \item{finalSPs}{
-       Matrix in which each row corresponds to a subpopulation, as calculated by \code{\link{clusterCellFrequencies}.}
+       Matrix in which each row corresponds to a subpopulation, as calculated by \code{\link{clusterCellFrequencies}}.
 }
   \item{max_PM}{
-       Upper threshold for the number of amplicons per mutated cell. See also \code{\link{cellfrequency_pdf}.}
+       Upper threshold for the number of amplicons per mutated cell. See also \code{\link{cellfrequency_pdf}}.
+}
+  \item{cnvSPs}{
+       Matrix in which each row corresponds to a subpopulation, as calculated by \code{\link{clusterCellFrequencies}}. If not set, finalSPs will be used to assign CNVs as well as SNVs.
+}
+  \item{ploidy}{
+        The background ploidy of the sequenced sample (default: 2). Changing the value of this parameter is not recommended. Dealing with cell lines or tumor biopsies of very   high (>=0.95) tumor purity is a necessary but not sufficient condition to change the value of this parameter.
+}
+\item{verbose}{
+        Give a more verbose output.
 }
 }
 \details{
@@ -30,13 +39,13 @@ The assignment between subpopulation \eqn{C} and locus \eqn{l} only implies that
 \value{A list with two fields:
 \item{dm}{
        The input matrix with seven additional columns:\cr
-	\bold{SP} - the subpopulation to which the point mutation has been asssigned;\cr
-	\bold{PM_B} - the ploidy of the B-allele at the mutated genomic locus, in the assigned subpopulation (SP).\cr
-   	\bold{PM} - the total ploidy of all alleles, in the assigned subpopulation (SP).\cr
-	\bold{SP_cnv} - if the point mutation lies within an amplified or deleted region: the subpopulation to which the copy number variation has been asssigned.	This entry has the same value as SP if and only if: i) the SNV and the CNV were propagated during the same clonal expansion or ii) the SNV lies within a copy neutral region.\cr
-	\bold{PM_B_cnv} - the ploidy of the B-allele, in the CNV harboring subpopulation (SP_cnv).\cr
-	\bold{PM_cnv} - the total ploidy of all alleles, in the CNV harboring subpopulation (SP_cnv).\cr
-	\bold{\%maxP} - confidence of the point mutation assignment to SP.\cr
+	\bold{SP} - subpopulation to which the point mutation has been assigned;\cr
+	\bold{PM_B} - count of the B-allele at the mutated genomic locus, in the assigned subpopulation (SP).\cr
+   	\bold{PM} - total count of all alleles, in the assigned subpopulation (SP).\cr
+	\bold{SP_cnv} - if the point mutation lies within an amplified or deleted region: the subpopulation to which the copy number variation has been assigned.	This entry has the same value as SP if and only if: i) the SNV and the CNV were propagated during the same clonal expansion or ii) the SNV lies within a copy neutral region.\cr
+	\bold{PM_B_cnv} - count of the B-allele, in the CNV harboring subpopulation (SP_cnv).\cr
+	\bold{PM_cnv} - total count of all alleles, in the CNV harboring subpopulation (SP_cnv).\cr
+	\bold{\%maxP} - confidence of the assigned SP/SP_cnv scenario.\cr
 } 
 \item{finalSPs}{
        The input matrix of subpopulations with column \bold{nMutations} updated according to the total number of mutations assigned to each subpopulation.

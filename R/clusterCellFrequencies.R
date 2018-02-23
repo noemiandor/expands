@@ -1,4 +1,4 @@
-clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0.1){ ##, plotF=0
+clusterCellFrequencies <- function(densities, p, nrep=30, min_CF=0.1,verbose=T){ ##, plotF=0
   #   if(plotF>0 && !require(rgl)){
   #   	plotF=0;
   #   	message("Plot supressed:  Package rgl required for 3D plot of subpopulation clusters. Load this package befor using this option.")
@@ -9,7 +9,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   
   count=0;##counting xtick for cluster plot
   clusterMethod="average";
-  print(paste("Clustering agglomeration method:",clusterMethod))
+  .notifyUser(paste("Clustering agglomeration method:",clusterMethod),verbose=verbose)
   
   ##Cluster probabilities based on Kullback-Leibler divergence
   D = KLdiv(t(densities),eps=10^-18);
@@ -19,14 +19,14 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   Z = hclust(as.dist(D),method = clusterMethod);
   TC = cutree(Z,k=round(sqrt(nrow(densities))));
   clIdx=unique(TC);
-  print("Done");
+  .notifyUser("Done",verbose=verbose);
   #figure("Name",paste("Cluster-Size_",R,sep=""));hist(T,length(clIdx))
   
-  print("Filtering Clusters...");
+  .notifyUser("Filtering Clusters...",verbose=verbose);
   allSPs=list();tRep=nrep;
   while (nrep>0){
     if (mod(nrep,3)==0){
-      print(paste(100*(tRep-nrep)/tRep, "% completed"))
+      .notifyUser(paste(100*(tRep-nrep)/tRep, "% completed"),verbose=verbose)
     }
     ##test each cluster for significance --> printlay SPs
     spCols=c("Max Size","Mean Size","Mean Weighted","wilcTest","wilcTest_Mean","wilcTest_Sum","wilcTest_Kurtosis","kurtosis","kurtosisNoise","kurtosisMean","kurtosisNoiseMean","nMutations","precision","score");
@@ -90,7 +90,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
         kurtNoise=apply(peakCl[,setdiff(c(1:length(freq)),idx)],1,kurtosis,na.rm=T);
         zzK=wilcox.test(kurt,kurtNoise,conf.level=0.99,alternative="greater");
         
-        SPs[k,]=c(peak,meanClPeak,wMean, zz$p.value,zz2$p.value,zz3$p.value,zzK$p.value,max(kurt),max(kurtNoise),mean(kurt),mean(kurtNoise),nrow(peakCl),precision, score);
+        SPs[k,]=c(peak,meanClPeak,wMean, zz$p.value,zz2$p.value,zz3$p.value,zzK$p.value,max(kurt),max(kurtNoise),mean(kurt),mean(kurtNoise),nrow(peakCl),p, score);
         ##calculate score
         score=SPs[k,"wilcTest"]+SPs[k,"wilcTest_Mean"]+SPs[k,"wilcTest_Sum"]+1/log(SPs[k,"nMutations"]);
         if(!is.na(SPs[k,"kurtosisNoiseMean"])){
@@ -112,7 +112,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
     ##collapse similar
     ia=order(SPs[,"Mean Weighted",drop=F],decreasing=T);
     SPs=SPs[ia,,drop=F];
-    SPs=.collapseSimilar(SPs,precision);
+    SPs=.collapseSimilar(SPs,p);
     ##print(paste("Found ",size(SPs,1),"SPs."));
     if (size(SPs,1)>0){
       allSPs[[length(allSPs)+1]]=SPs;
@@ -129,13 +129,13 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   #     title3d("",label);
   #   }
   
-  robSPs=.chooseRobustSPs(allSPs,precision,min_CellFreq);
-  SPs=.collapseSimilar(robSPs$SPs,precision);
+  robSPs=.chooseRobustSPs(allSPs,p,min_CF);
+  SPs=.collapseSimilar(robSPs$SPs,p);
   
   outcols=c("Mean Weighted","score","precision","nMutations");##printlay only these columns
   SPs=SPs[,outcols,drop=F];
   
-  print("Done.");
+  .notifyUser("Done.",verbose=verbose);
   return(SPs);
 }
 
@@ -149,12 +149,12 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   return(wMean);
 }
 
-.chooseRobustSPs <- function(allSPs,precision,min_CellFreq){
+.chooseRobustSPs <- function(allSPs,p,min_CF){
   ## input parameter SPs is a cell array with DataMatrix (DM) objects. Each row in
   ## DM contains the size and the p-value associated with a SP. DM is sorted
   ## in descending order of SP size.
   #count frequencies among predictions;
-  freq=t(seq(min_CellFreq,1,by=precision));
+  freq=t(seq(min_CF,1,by=p));
   SPsizes=matrix(nrow = length(allSPs), ncol = length(freq),
                  dimnames = list(paste(c(1:length(allSPs))), freq))
   for (i in 1:length(allSPs)){
@@ -208,7 +208,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
 #return(updatecount);
 #}
 
-.collapseSimilar <-function(SPs,precision){
+.collapseSimilar <-function(SPs,p){
   isNaNIdx=which(is.na(SPs[,"Mean Weighted"]));
   if (!isempty(isNaNIdx)){
     SPs=SPs[-isNaNIdx,,drop=F];
@@ -218,7 +218,7 @@ clusterCellFrequencies <- function(densities, precision, nrep=30, min_CellFreq=0
   }
   spSize=unique(round(SPs[,"Mean Weighted"]*100)/100);
   for (n in 1:length(spSize)){
-    idx=which(abs(SPs[,"Mean Weighted"]-spSize[n])<precision);
+    idx=which(abs(SPs[,"Mean Weighted"]-spSize[n])<p);
     if (length(idx)>1){
       ia=which.min(SPs[idx,"wilcTest"]);
       rmIdx=setdiff(idx,idx[ia]);

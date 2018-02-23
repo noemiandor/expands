@@ -1,9 +1,18 @@
-cellfrequency_pdf <-function(af,cnv,pnb,freq, max_PM=6){
+cellfrequency_pdf <-function(af,cnv,pnb,freq, max_PM=6, ploidy=2){
+
+  enforceCoocurrence=T; 
+  # #No co-occurence assumption violation, unless this is a germline variant:
+  # if(pnb==1){
+  #   enforceCoocurrence=F
+  #   max_PM=2; ##Limit scenarios when dealing with LOH
+  # }
   
   ###Get cell frequency probability solution for this locus
-  .jcall("core.utils.Common","V","setALLOWED_FREQUENCIES",.jarray(as.double(freq)))
+  .jcall("core.utils.Common","V","setALLOWED_SP_FREQUENCIES",.jarray(as.double(freq)))
+  .jcall("core.utils.Common","V","setALLOWED_SP_CNV_FREQUENCIES",as.double(NULL))
   .jcall("core.utils.Common","V","setMAX_PM",as.integer(max_PM))
-  o <-.jnew("core.ParallelSubpopulations",as.double(cnv), as.double(af), as.integer(pnb),as.logical(T));
+  o <-.jnew("core.ParallelSubpopulations",as.double(cnv), as.double(af), as.integer(pnb),
+            as.logical(enforceCoocurrence), as.integer(ploidy));
   cs=.jcall(o,"Ljava/util/Map;","getCellFreq2ProbabilityMap")
   
   ###Parse java object, sort and set small non-zero distance for perfect fit
@@ -19,7 +28,9 @@ cellfrequency_pdf <-function(af,cnv,pnb,freq, max_PM=6){
             weights = mat[,"prob"],from=min(freq),to=max(freq))
   bestF=p$x[which.max(p$y)];
   
-  output=list("p"=approx(p$x,p$y,freq)$y,"bestF"=bestF);
+  output=list(p=approx(p$x,p$y,freq)$y,bestF=bestF);
+  
+  gc(); ##run gc() so Java can release the data
   return(output)
 }
 

@@ -1,4 +1,7 @@
-runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision=NA, plotF=2,snvF=NULL,maxN=8000,region=NA){
+runExPANdS<-function(SNV, CBS, maxS=0.7, max_PM=6, min_CF=0.1, p=NA, ploidy=2, 
+                     nc=1, plotF=2, snvF=NULL, maxN=8000, region=NA, verbose=T){
+  MINSNVS=15
+  
   if (!exists("SNV") || !exists("CBS")){
     print("Input-parameters SNV and/or CBS missing. Please add the paths to tabdelimited files containing the SNVs and copy numbers.");
     return();
@@ -6,50 +9,63 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
 
   dirF=getwd();
   ##Read point mutation and copy number input
-  tmp=.readSNVandCBS(SNV,CBS,max_PM=max_PM, min_CellFreq=min_CellFreq, snvF=snvF);
+  tmp=.readSNVandCBS(SNV,CBS,max_PM=max_PM, min_CF=min_CF, snvF=snvF, verbose=verbose);
   dm=tmp$dm; copyNumber=tmp$copyNumber; snvF=tmp$snvF;
   
-  ii=which(dm[,"CN_Estimate"]<1);
+  ii=which(dm[,"CN_Estimate"]<0.5);
   if (length(ii)>0){
     print(paste(length(ii), " SNV(s) excluded due to homozygous deletions within that region."));
     dm=dm[-ii,];
   }
   
-  if(is.null(dm) || is.null(dim(dm)) || nrow(dm)<20){
-    print("Not enough mutations provided. Minimum 20 SNVs required to attempt a run.")
-    return(list("finalSPs"=NULL,"dm"=NULL,"densities"=NULL,"ploidy"=NULL));
+  if(is.null(dm) || is.null(dim(dm)) || nrow(dm)<MINSNVS){
+    print("Not enough mutations provided. Minimum",MINSNVS,"SNVs required to attempt a run.")
+    return(list("finalSPs"=NULL,"dm"=NULL,"densities"=NULL,"sp_cbs"=NULL));
   }
   
   ##Regions of interest
-  idx_R=.indexOfSNVsWithin(region,dm,maxN)
-  if (is.na(precision)){
-    precision=0.1/log(length(idx_R)/7);
+  idx_R=.indexOfSNVsWithin(region, dm, maxN, verbose=verbose)
+  if (is.na(p)){
+    p=0.1/log(length(idx_R)/7);
   }
 
   #############################
   ###Input parsing ends here###
-  cfd=computeCellFrequencyDistributions(dm = dm, max_PM = max_PM, precision = precision, min_CellFreq=min_CellFreq);
+  cfd=computeCellFrequencyDistributions(dm = dm, max_PM = max_PM, p = p, 
+                                        ploidy=ploidy, min_CF=min_CF, nc=nc, v=verbose);
   toUseIdx=which(apply(is.finite(cfd$densities),1,all) );
   toUseIdx=intersect(toUseIdx,idx_R);
-  SPs=clusterCellFrequencies(densities = cfd$densities[toUseIdx,], precision = precision, min_CellFreq=min_CellFreq);
-  if(is.null(SPs) || size(SPs,1)==0 || all(is.na(SPs))){
+  SPs=clusterCellFrequencies(densities = cfd$densities[toUseIdx,], p = p, min_CF=min_CF,verbose=verbose);
+  if(is.null(SPs) || size(SPs,1)==0 || all(is.na(SPs)) || sum(SPs[,"score"]<=maxS)==0 ){
     print("No SPs found.")
     result=list("finalSPs"=NULL,"dm"=cfd$dm,"densities"=cfd$densities);
     return(result);
   }
-  finalSPs=SPs[SPs[,"score"]<=maxScore,,drop=F];
+  finalSPs=SPs[SPs[,"score"]<=maxS,,drop=F];
   ia=order(finalSPs[,"Mean Weighted"]);
   finalSPs=matrix(finalSPs[ia,,drop=F],nrow=nrow(finalSPs), ncol=ncol(finalSPs), dimnames=list(1:nrow(finalSPs),colnames(finalSPs)));
 
   if(size(finalSPs,1)==0){
-    print(paste("No SPs found below score:",maxScore))
+    print(paste("No SPs found below score:",maxS))
     result=list("finalSPs"=finalSPs,"dm"=dm,"densities"=cfd$densities);
     return(result);
   }
   ###########################
   ###Assigning SNVs to SPs###
-  aM = assignMutations( dm = cfd$dm, finalSPs = finalSPs, max_PM=max_PM);
+  aM = assignMutations( dm = cfd$dm, finalSPs = finalSPs, max_PM=max_PM, ploidy=ploidy,verbose=verbose);
   dm=aM$dm; SPs=aM$finalSPs;
+  
+#   ########################################################################
+#   ##Remove SPs with no single SNV/CNV cooccurence and reassign mutations##
+#   iF=which(SPs[,'snv_cnv_Co']==0);
+#   while(length(iF)>0 && nrow(SPs)>2){ ##Remove only if enough SPs are left
+#     iF=iF[which.max(SPs[iF,'score'])]
+#     .notifyUser(paste("Excluding subpopulation",SPs[iF,'Mean Weighted'],"with 0 SNV/CNV cooccurence incidence."),verbose=verbose)
+#     SPs=SPs[-iF,,drop=F]
+#     aM = assignMutations( dm = cfd$dm, finalSPs = SPs, max_PM=max_PM, ploidy=ploidy,verbose=verbose);
+#     dm=aM$dm; SPs=aM$finalSPs;
+#     iF=which(SPs[,'snv_cnv_Co']==0);
+#   }
   
   ###########################
   ##Choose between doublets##
@@ -72,13 +88,16 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
     toRm=unique(toRm)
     if (!is.null(toRm) && length(toRm)>0){
       iReassign=which(dm[,'SP'] %in% SPs[toRm,'Mean Weighted'] | dm[,'SP_cnv'] %in% SPs[toRm,'Mean Weighted'] );
-      print(paste('Reassigning SNVs after pruning',length(toRm),'doublet subpopulation(s). Pruned subpopulation(s):'))
-      print(SPs[toRm,'Mean Weighted'])
+      print(paste('Reassigning SNVs after pruning',length(toRm),'doublet subpopulation(s).'))
+      .notifyUser("Pruned subpopulation(s):",verbose = verbose)
+      .notifyUser(SPs[toRm,'Mean Weighted'],verbose = verbose)
       SPs=SPs[-toRm,, drop=FALSE];
-      aM = assignMutations(dm = dm[iReassign,,drop=FALSE], finalSPs = SPs,max_PM=max_PM);
+      aM = assignMutations(dm = dm[iReassign,,drop=FALSE], finalSPs = SPs,max_PM=max_PM, ploidy=ploidy,verbose=verbose);
       dm[iReassign,]=aM$dm; 
-      iSP=match(aM$finalSPs[,'Mean Weighted'],SPs[,'Mean Weighted']);
-      SPs[iSP,'nMutations']=SPs[iSP,'nMutations']+aM$finalSPs[,'nMutations'];
+      #Recount mutations after reassignment (absence of pruned SP_cnv may cause reassignment of mutations among remaining SPs):
+      SPs[,"nMutations"]=0;
+      tmp=count(dm[,"SP"]); ia=match(tmp$x,SPs[,"Mean Weighted"]);
+      SPs[ia,"nMutations"]=tmp$freq
       finalSPs=SPs;
     }else{
       continueprune=FALSE;
@@ -106,14 +125,14 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
   ##phylogeny
   finalSPs=.addColumn(finalSPs,'Ancestor',NA);
   finalSPs=.addColumn(finalSPs,'ClosestDescendant',NA);
-  aQ=try(assignQuantityToSP(cbs = copyNumber, dm = dm),silent=FALSE);
+  aQ=try(assignQuantityToSP(cbs = copyNumber, dm = dm,v=verbose),silent=FALSE);
   tr=NULL;
   if(class(aQ)=="try-error"){
-    print("Error encountered while assigning subpopulation specific ploidy to copy number segments. Phylogeny will not be inferred.")
+    print("Error encountered while assigning subpopulation specific copy number to genomic segments. Phylogeny will not be inferred.")
   }else {
     .writeExpandsOutput(X=aQ, dirF,snvF,suffix=".sps.cbs", message="Subpopulation specific copy numbers")
     output=paste(dirF, .Platform$file.sep, snvF, sep="");    # output=paste(dirF, .Platform$file.sep, gsub("\\.","_",snvF), sep="");
-    tr=try(buildPhylo(ploidy = aQ,outF = output,dm=dm),silent=FALSE);
+    tr=try(buildPhylo(sp_cbs = aQ,outF = output,dm=dm,verbose=verbose),silent=FALSE);
     if(class(tr)!="try-error" ){
       if(class(tr$dm)!="try-error" && !is.na(tr$dm)){
         dm=tr$dm;
@@ -148,25 +167,14 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
     try(plot(tr),silent=FALSE);
   }
   
-  result=list("finalSPs"=finalSPs,"dm"=dm,"densities"=cfd$densities,"ploidy"=aQ,"tree"=tr);
+  result=list("finalSPs"=finalSPs,"dm"=dm,"densities"=cfd$densities,"sp_cbs"=aQ,"tree"=tr);
   return(result);
 }
 
 
-
-
-.writeExpandsOutput<-function(X, dirF,snvF,suffix=".sps.cbs", message="Output"){
-  output=paste(dirF, .Platform$file.sep, snvF,suffix,sep="");
-  write(paste("## expands version",packageVersion("expands")), file = output, append=FALSE);
-  suppressWarnings(write.table(X,file = output, append=TRUE, quote = FALSE, sep = "\t", row.names=FALSE));
-  print(paste(message," saved under ",output));
-}
-
-
-
-.indexOfSNVsWithin<-function(region,dm,maxN){
+.indexOfSNVsWithin<-function(region, dm, maxN, verbose){
   if (is.character(region) && file.exists(region)){
-    roi=read.table(region,sep="\t",header=TRUE,stringsAsFactors = FALSE);
+    roi=read.table(region,sep="\t",header=TRUE,check.names = F,stringsAsFactors = F);
     roi <- roi[ as.character(roi[,"chr"]) %in% as.character(seq(100)), ,drop=F];
     if(nrow(roi)==0){
       warning(paste(region,"does not contain genomic regions on known chromosomes. Regions will be ignored. Correct format does not include \'chr\'-prefix."))
@@ -184,7 +192,7 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
     
     if (!is.numeric(roi)) {
       print("Region matrix has to be numeric.");
-      return( list("finalSPs"=NULL,"dm"=NULL,"densities"=NULL,"ploidy"=NULL) );
+      return( list("finalSPs"=NULL,"dm"=NULL,"densities"=NULL,"sp_cbs"=NULL) );
     }
     print(paste("Gathering SNVs within regions of interest ..."))
     ##Find SNVs within regions of interest
@@ -196,7 +204,7 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
       ix=which.min(abs(roi[ii,'start']-dm[i,'startpos']))
       ii=ii[c(max(0,(ix - 2)):min(length(ii),(ix + 2)))];
       if(i %% 100 ==0){
-        print(paste(i," out of ",nrow(dm), " SNVs tested"))
+        .notifyUser(paste(i," out of ",nrow(dm), " SNVs tested"),verbose=verbose)
       }
       for (j in ii){
         if (roi[j,'start']<=dm[i,'startpos'] && roi[j,'end']>=dm[i,'startpos']){
@@ -214,4 +222,10 @@ runExPANdS<-function(SNV, CBS, maxScore=2, max_PM=6, min_CellFreq=0.1, precision
     }
   }
   return(idx_R)
+}
+
+.notifyUser<-function(message,verbose=T){
+  if(verbose){
+    print(message)
+  }
 }

@@ -1,4 +1,4 @@
-assignQuantityToMutation<-function(dm,cbs,quantityColumnLabel="CN_Estimate"){
+assignQuantityToMutation<-function(dm,cbs,quantityColumnLabel="CN_Estimate",verbose=T){
 
 ##Add column segmentID to CBS
 cols=c("quantityID",quantityColumnLabel,"segmentLength");
@@ -21,23 +21,22 @@ if (!any(colnames(cbs)=="segmentLength")){
 }
 
 if (quantityColumnLabel[1]=="FPKM"){
-    dm=.assignFPKMToMutation(dm,cbs,cols);
-}else if(quantityColumnLabel[1]=="CN_Estimate" || quantityColumnLabel[1]=="expressedInCells" ||  quantityColumnLabel[1]=="medianPerExpressingCell" || !isempty(grep("^SP_",quantityColumnLabel[1])) ){
-    dm=.assignCBSToMutation(dm,cbs,cols);
+    dm=.assignFPKMToMutation(dm,cbs,cols,verbose=verbose);
 }else{
-    stop(paste("Invalid quantityColumnLabel: ",quantityColumnLabel,". Valid options are: FPKM, CN_Estimate."));
+    dm=.assignCBSToMutation(dm,cbs,cols,verbose=verbose);
 }
+
 return(dm);
 }
 
-.assignFPKMToMutation<-function(dm,cbs,cols){
+.assignFPKMToMutation<-function(dm,cbs,cols,verbose){
 dm=.addColumn(dm,"Dominant_Isoform",0);
 dmPlus=c();
 print("Assigning expression to mutations...")
 ##Assign copy numbers in cbs to mutations in dm
 for (k in 1:nrow(dm)){
     if (mod(k,100)==0){
-        print(paste("Finding overlaps for mutation", k, "out of ",nrow(dm),"..."))
+        .notifyUser(paste("Finding overlaps for mutation", k, "out of ",nrow(dm),"..."),verbose=verbose)
     }
     idx=which(dm[k,"chr"]==cbs[,"chr"] & dm[k,"startpos"]>=cbs[,"startpos"] & dm[k,"startpos"]<=cbs[,"endpos"]);
     if (length(idx)>0){
@@ -53,18 +52,18 @@ for (k in 1:nrow(dm)){
 }
 dm=rbind(dm,dmPlus);
 dm=dm[,colnames(dm)!="segmentLength",drop=F];
-print("... Done.")
+.notifyUser("... Done.",verbose=verbose)
 
 return(dm);
 }
 
 
-.assignCBSToMutation<-function(dm,cbs,cols){
+.assignCBSToMutation<-function(dm,cbs,cols,verbose){
 print("Assigning copy number to mutations...")
 ##Assign copy numbers in cbs to mutations in dm
 for (k in 1:nrow(cbs)){
     if (mod(k,100)==0){
-        print(paste("Finding overlaps for CBS segment", k,"out of ",nrow(cbs),"..."));
+        .notifyUser(paste("Finding overlaps for CBS segment", k,"out of ",nrow(cbs),"..."),verbose=verbose);
     }
     idx=which(dm[,"chr"]==cbs[k,"chr"] & dm[,"startpos"]>=cbs[k,"startpos"] & dm[,"startpos"]<=cbs[k,"endpos"]);
     if (length(idx)==0){
@@ -77,7 +76,7 @@ for (k in 1:nrow(cbs)){
     dm[idx[ok],cols]=repmat(cbs[k,cols],length(ok),1);
 }
 dm=dm[,colnames(dm)!="segmentLength",drop=F];
-print("... Done.")
+.notifyUser("... Done.",verbose=verbose)
 
 return(dm);
 }

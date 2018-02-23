@@ -1,8 +1,53 @@
-.readSNVandCBS<-function(SNV,CBS,max_PM=6, min_CellFreq=0.1,snvF=NULL){
+.addColumn<-function(M,newCol,initVal){
+  if (!any(colnames(M)==newCol)){
+    if(!is.null(dim(M))){
+      M=matrix(cbind(M,matrix(initVal,nrow(M),1)),nrow=nrow(M),ncol=ncol(M)+1,
+               dimnames = list(rownames(M), c(colnames(M),newCol)));
+    }else{
+      cols=names(M);
+      M=c(M,initVal);	
+      names(M)=c(cols,newCol);
+    }
+  }
+  return(M);
+}
+
+
+
+
+
+.intersect_MatlabV<-function(a,b){
+  x=intersect(a,b)
+  ia=match(x,a);
+  ib=match(x,b);
+  return(list(a=x,ia=ia,ib=ib));
+}
+
+
+
+
+
+.writeExpandsOutput<-function(X, dirF,snvF,suffix=".sps.cbs", message="Output"){
+  X=as.data.frame(X)
+  if(suffix==".sps.cbs"){
+    X[,"LOCUS"]=paste(X$chr,":",X$startpos,"-",X$endpos,sep="")
+  }else if(suffix==".sps"){
+    X[,"LOCUS"]=paste(X$chr,":",X$startpos,"-",X$startpos,sep="")
+  }
+  output=paste(dirF, .Platform$file.sep, snvF,suffix,sep="");
+  write(paste("## expands version",packageVersion("expands")), file = output, append=FALSE);
+  suppressWarnings(write.table(X,file = output, append=TRUE, quote = FALSE, sep = "\t", row.names=FALSE));
+  print(paste(message,"saved under",output));
+}
+
+
+
+
+.readSNVandCBS<-function(SNV,CBS,max_PM=6, min_CF=0.1,snvF=NULL, verbose){
   ##SNVs
   if (is.character(SNV) && file.exists(SNV)){
     print(paste("Running ExPANdS on: ",SNV))
-    dm=read.table(SNV,sep="\t",header=TRUE,stringsAsFactors = FALSE);
+    dm=read.table(SNV,sep="\t",header=TRUE,check.names = F,stringsAsFactors = F);
     if (!all(sapply(dm,is.numeric))){
       print(paste("Warning: not all columns in", SNV,"are numeric. Use only numeric data as input to ensure unexpected conversion does not occur."))
     }
@@ -36,7 +81,7 @@
   
   ##CBS
   if (is.character(CBS) && file.exists(CBS)){
-    copyNumber=as.matrix(read.table(CBS,sep="\t",header=TRUE,stringsAsFactors = FALSE))
+    copyNumber=as.matrix(read.table(CBS,sep="\t",header=TRUE,check.names = F,stringsAsFactors = F))
     if (!all(sapply(copyNumber,is.numeric))){
       print(paste("Warning: not all columns in", CBS,"are numeric. Use only numeric data as input to ensure unexpected conversion does not occur."))
     }
@@ -48,13 +93,13 @@
   }
   if(!any("CN_Estimate" %in% colnames(dm))){  
     if (any(copyNumber[,"CN_Estimate"]<0) || quantile(copyNumber[,"CN_Estimate"],0.9)<1){
-      print("Column <CN_Estimate> in CBS input seems to contain log-ratio entries. Please supply absolute copy number values (e.g. average ~2.0 expected for predominantly diploid genomes).")
+      print("Column <CN_Estimate> in CBS input seems to contain log-ratio entries. Absolute copy number values are required (e.g. average ~2.0 expected for predominantly diploid genomes).")
       return();
     }
     if (sum(abs(copyNumber[,"CN_Estimate"]-round(copyNumber[,"CN_Estimate"])))<1){
       print("Warning! Copy numbers have values rounded to the closest integer. Using rational positive estimates of copy numbers is recommended.")
     }
-    dm=assignQuantityToMutation(dm,copyNumber,"CN_Estimate");
+    dm=assignQuantityToMutation(dm,copyNumber,"CN_Estimate",verbose=verbose);
   }else{
     print("Using column <CN_Estimate> from <SNV> as copy number estimate. Parameter <CBS> used only for phylogeny inference.")
   }
@@ -69,9 +114,9 @@
     print(paste(length(ii), " SNV(s) excluded due to high-level amplifications (>",max_PM, "copies) within that region. Consider increasing value of parameter max_PM to include these SNVs, provided high coverage data (> 150 fold) is available"));
     dm=dm[-ii,];
   }
-  ii=which(dm[,"AF_Tumor"]*dm[,"CN_Estimate"]<min_CellFreq);
+  ii=which(dm[,"AF_Tumor"]*dm[,"CN_Estimate"]<min_CF);
   if (length(ii)>0){
-    print(paste(length(ii), " SNV(s) excluded due to AF*CN below ", min_CellFreq," (SNV can't be explained by an SP present in ",min_CellFreq*100 ,"% or more of the sample)."));
+    print(paste(length(ii), " SNV(s) excluded due to AF*CN below ", min_CF," (SNV can't be explained by an SP present in ",min_CF*100 ,"% or more of the sample)."));
     dm=dm[-ii,];
   }
   

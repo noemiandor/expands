@@ -1,19 +1,19 @@
 Package: expands
 Type: Package
 Title: Expanding Ploidy and Allele-Frequency on Nested Subpopulations
-Version: 2.0.0
-Date: 2017-04-09
+Version: 2.1.0
+Date: 2018-02-23
 Author: Noemi Andor
 Maintainer: Noemi Andor <expands.r@gmail.com>
-Description: Expanding Ploidy and Allele Frequency on Nested Subpopulations (expands) characterizes coexisting subpopulations in a single tumor sample using copy number and allele frequencies derived from exome- or whole genome sequencing input data (<http://www.ncbi.nlm.nih.gov/pubmed/24177718>). The model detects coexisting genotypes by leveraging run-specific tradeoffs between depth of coverage and breadth of coverage. This package predicts the number of clonal expansions, the size of the resulting subpopulations in the tumor bulk, the mutations specific to each subpopulation, tumor purity and phylogeny. The main function runExPANdS() provides the complete functionality needed to predict coexisting subpopulations from single nucleotide variations (SNVs) and associated copy numbers.  The robustness of subpopulation predictions increases with the number of mutations provided. It is recommended that at least 200 mutations are used as input to obtain stable results. Updates in version 2.0 include: (i) copy-neutral LOH are now modelled; (ii) more robust calculation of cell frequency probabilities from kernel density estimates instead of Gaussian mixtures. Further documentation and FAQ available at <http://dna-discovery.stanford.edu/software/expands>.
+Description: Expanding Ploidy and Allele Frequency on Nested Subpopulations (expands) characterizes coexisting subpopulations in a single tumor sample using copy number and allele frequencies derived from exome- or whole genome sequencing input data (<http://www.ncbi.nlm.nih.gov/pubmed/24177718>). The model detects coexisting genotypes by leveraging run-specific tradeoffs between depth of coverage and breadth of coverage. This package predicts the number of clonal expansions, the size of the resulting subpopulations in the tumor bulk, the mutations specific to each subpopulation, tumor purity and phylogeny. The main function runExPANdS() provides the complete functionality needed to predict coexisting subpopulations from single nucleotide variations (SNVs) and associated copy numbers.  The robustness of subpopulation predictions increases with the number of mutations provided. It is recommended that at least 200 mutations are used as input to obtain stable results. Updates in version 2.1 include: (i) new parameter ploidy in runExPANdS.R allows specification of non-diploid background ploidies (e.g. for near-triploid cell lines); (ii) parallel computing option is available. Further documentation and FAQ available at <http://dna-discovery.stanford.edu/software/expands>.
 License: GPL-2
 URL: http://dna-discovery.stanford.edu/software/expands, https://github.com/noemiandor/expands, https://groups.google.com/d/forum/expands
 Depends: R (>= 2.10)
-Imports: rJava (>= 0.5-0), flexmix (>= 2.3), matlab (>= 0.8.9), moments (>= 0.13), ape (>= 3.2)
+Imports: flexclust, plyr, RColorBrewer, gplots, NbClust, moments (>= 0.13), rJava (>= 0.5-0), flexmix (>= 2.3), matlab (>= 0.8.9), ape (>= 3.2), commonsMath (>= 1.1), parallel
 Suggests: phylobase (>= 0.6.8)
-SystemRequirements: Java (>= 1.5)
-Packaged: 2017-04-09 02:11:04 UTC; noemi
+SystemRequirements: Java (>= 5.0)
+Packaged: 2018-02-23 02:11:04 UTC; noemi
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2017-04-09 08:11:04
+Date/Publication: 2018-02-23 08:11:04
 RoxygenNote: 6.0.1

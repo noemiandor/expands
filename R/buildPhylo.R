@@ -1,13 +1,14 @@
-buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
+buildPhylo<-function(sp_cbs,outF,treeAlgorithm="bionjs",dm=NA, add="Germline",verbose=T){
   out=list("tree"=NULL,"dm"=dm);
-  ii=grep("SP",colnames(ploidy));
-  cnv=ploidy[,ii];
+  ii=grep("SP",colnames(sp_cbs));
+  cnv=sp_cbs[,ii];
   if(is.null(ncol(cnv))){
     print("Less than two SPs coexist in this tumor. Aborting phylogeny reconstruction");
     return(out);
   }
   
-  print(paste("Building phylogeny using ",treeAlgorithm," algorithm",sep=""))
+  .notifyUser(paste("Building phylogeny using ",treeAlgorithm," algorithm",sep=""),verbose=verbose)
+  
   print("Pairwise SP distances calculated as: % segments with identical copy number");
   ##Add user specified artificial SP, if any
   if(!is.null(add)){
@@ -49,7 +50,7 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
   out$tree=tr;
   out$spRelations=NULL;
   if(!is.na(dm)){
-    out1=try(.assignSNVsToMultipleSPs(dm,outF),silent=FALSE)
+    out1=try(.assignSNVsToMultipleSPs(dm, outF, verbose=verbose),silent=FALSE)
     if(class(out1)!="try-error"){
       dm=out1$dm;
       out$spRelations=out1$spRelations;
@@ -59,7 +60,7 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
   return(out);
 }
 
-.assignSNVsToMultipleSPs <-function(dm,outF){
+.assignSNVsToMultipleSPs <-function(dm,outF,verbose){
   dm[, c("SP_cnv","SP")]=round(1000*dm[, c("SP_cnv","SP")])/1000
   if (!requireNamespace("phylobase", quietly = TRUE)) {
     print("Package \'phylobase\' is needed for assigning SNVs to Multiple SPs but is not installed.")
@@ -73,7 +74,7 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
     write.tree(tr, file = "tmp.tree");
     tr=phylobase::readNewick("tmp.tree",check.names=F);
   }
-  print("Assigning SNVs to SPs...")
+  .notifyUser("Assigning SNVs to SPs...",verbose=verbose)
   spsInTree=names(phylobase::getNode(tr,type="tip"));  
   SPs = sort(unique(c(dm[, "SP_cnv"],dm[,"SP"])))
   spNames= paste("SP_", SPs, sep = "");
@@ -95,17 +96,20 @@ buildPhylo<-function(ploidy,outF,treeAlgorithm="bionjs",dm=NA, add="Germline"){
       next;
     }
     if (mod(k, 100) == 0) {
-      print(paste("Assigning SPs for SNV", k, 
-                  "out of ", nrow(dm), "..."))
+      .notifyUser(paste("Assigning SPs for SNV", k, 
+                  "out of ", nrow(dm), "..."),verbose=verbose)
     }
     dm=.propagateSNVToMultipleSPs(thisSP,dm,k,tr,SPs)
     spRelations[thisSP,dm[k,colnames(spRelations)]==1]=1;
     spRelations[thisSP,thisSP]=0
   }
   
-  for (i in 1:(length(spNames)-1)){
+  for (i in (length(spNames)-1):1){
     iPhylo=which(sum(t(dm[,spNames]!=0))>length(spNames)-i)
     print(paste(length(iPhylo), " SNVs assigned to >",length(spNames)-i," SPs"))
+    if(length(iPhylo)==0){
+      break;
+    }
   }
   return(list(dm=dm,spRelations=spRelations) )
 }
