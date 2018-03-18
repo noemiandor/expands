@@ -42,6 +42,12 @@
 
 
 
+.notifyUser<-function(message,verbose=T){
+  if(verbose){
+    print(message)
+  }
+}
+
 
 .readSNVandCBS<-function(SNV,CBS,max_PM=6, min_CF=0.1,snvF=NULL, verbose){
   ##SNVs

@@ -1,14 +1,22 @@
+		CHANGES IN EXPANDS VERSION 2.1.1
+
+BUG FIXES
+
+    o Fixed bug in buildPhylo that prevented recognition of subpopulations within the phylogenetic tree, thereby limiting assignment of any given mutation to no more than one subpopulation.
+
+
+
 		CHANGES IN EXPANDS VERSION 2.1.0
 
 BUG FIXES
 
-    o Fixed undesired behaviour in Subpopulations.java where integer division was rounded thereby rejecting valid mutated and wild type ploidy configurations.
+    o Fixed undesired behaviour in Subpopulations.java where integer division was rounded thereby rejecting valid mutated and wild type copy number configurations.
     o Fixed bug in runExPANdS.R where the number of mutations per subpopulation was recorded incorrectly in .spstats output.
     o Fixed axis-range bug in plotSPs.R.
 
 NEW FEATURES
 
-    o Included parameter ploidy in runExPANdS.R, allowing specification of non-diploid background ploidies (e.g. for near-triploid cell lines).
+    o Included parameter ploidy in runExPANdS.R, allowing specification of non-diploid background states (e.g. for near-triploid cell lines).
     o Parallel computing option for runExPANdS.R (parameter nc).
 
 OTHER CHANGES	

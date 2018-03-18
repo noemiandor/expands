@@ -223,9 +223,3 @@ runExPANdS<-function(SNV, CBS, maxS=0.7, max_PM=6, min_CF=0.1, p=NA, ploidy=2,
   }
   return(idx_R)
 }
-
-.notifyUser<-function(message,verbose=T){
-  if(verbose){
-    print(message)
-  }
-}

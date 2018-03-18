@@ -124,7 +124,7 @@ spPhylo=buildPhylo(aQ,snvF,add = NULL)
 Finally we plot the phyloegentic tree.
 \begin{figure}[htbp]
 \begin{center}
-<<fig=TRUE, width=18, height=13>>=
+<<fig=TRUE, width=25, height=20>>=
 plot(spPhylo$tree,cex=3,type = "c")
 @
 \caption{\label{f4.3}

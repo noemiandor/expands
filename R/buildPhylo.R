@@ -61,7 +61,7 @@ buildPhylo<-function(sp_cbs,outF,treeAlgorithm="bionjs",dm=NA, add="Germline",ve
 }
 
 .assignSNVsToMultipleSPs <-function(dm,outF,verbose){
-  dm[, c("SP_cnv","SP")]=round(1000*dm[, c("SP_cnv","SP")])/1000
+  # dm[, c("SP_cnv","SP")]=round(1000*dm[, c("SP_cnv","SP")])/1000
   if (!requireNamespace("phylobase", quietly = TRUE)) {
     print("Package \'phylobase\' is needed for assigning SNVs to Multiple SPs but is not installed.")
     return(dm);
