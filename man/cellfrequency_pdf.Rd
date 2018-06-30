@@ -3,7 +3,7 @@
 \title{Computes the probability distribution of cellular frequencies for a single mutation.}
 \description{Calculates \eqn{P} - the probability density distribution of cellular frequencies for one single point mutation or CNV. For each cell-frequency \eqn{f}, the value of \eqn{P(f)} reflects the probability that the mutation is present in a fraction \eqn{f} of cells.
 }
-\usage{cellfrequency_pdf(af, cnv, pnb, freq, max_PM=6, ploidy = 2)}
+\usage{cellfrequency_pdf(af, cnv, pnb, freq, max_PM=6, ploidy = 2, enforceCoocurrence=T)}
 \arguments{
   \item{af}{
 	  The allelic frequency at which the point mutation has been observed.
@@ -22,6 +22,9 @@
 }
   \item{ploidy}{
         The background ploidy of the sequenced sample (default: 2). Changing the value of this parameter is not recommended. Dealing with cell lines or tumor biopsies of very  high (>=0.95) tumor purity is a necessary but not sufficient condition to change the value of this parameter.
+}
+  \item{enforceCoocurrence}{
+        Whether or not to enforce assumption that overlapping SNV and CNV were co-propagated as part of the same clonal expansion.
 }
 }
 \details{

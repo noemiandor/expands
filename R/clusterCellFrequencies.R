@@ -1,9 +1,8 @@
-clusterCellFrequencies <- function(densities, p, nrep=30, min_CF=0.1,verbose=T, plotF=0, zlim=NULL){
-  if(plotF>0 && !require(rgl)){
-    plotF=0;
-    message("Plot supressed:  Package rgl required for 3D plot of subpopulation clusters. Load this package befor using this option.")
-    open3d()
-  }
+clusterCellFrequencies <- function(densities, p, nrep=30, min_CF=0.1,verbose=T){ ##, plotF=0
+  #   if(plotF>0 && !require(rgl)){
+  #   	plotF=0;
+  #   	message("Plot supressed:  Package rgl required for 3D plot of subpopulation clusters. Load this package befor using this option.")
+  #   }
   freq=as.numeric(colnames(densities));
   print(paste("Clustering ",nrow(densities),"probability distributions..."))
   cols=c("red","yellow","green","pink","magenta","cyan","lightblue","blue");
@@ -101,11 +100,11 @@ clusterCellFrequencies <- function(densities, p, nrep=30, min_CF=0.1,verbose=T, 
         }
         SPs[k,"score"]=score;
         
-        #plot option
-        if (exists("plotF") && plotF>0 && nrep==tRep){
-          col=cols[mod(k,length(cols))+1];
-          count=.addTo3DPlot(count, clusterM, freq, col, zlim=zlim, N=nrow(densities));
-        }
+        #         #plot option
+        #         if (exists("plotF") && plotF>0 && nrep==tRep){
+        #            col=cols[mod(k,length(cols))+1];
+        #            count=.addTo3DPlot(count,clusterM,freq,col);
+        #         }
       },error = function(e) {
         print(e);
       })
@@ -125,6 +124,10 @@ clusterCellFrequencies <- function(densities, p, nrep=30, min_CF=0.1,verbose=T, 
     return(NULL);
   }
   
+  #   ##plot option
+  #   if (plotF>0){
+  #     title3d("",label);
+  #   }
   
   robSPs=.chooseRobustSPs(allSPs,p,min_CF);
   SPs=.collapseSimilar(robSPs$SPs,p);
@@ -193,17 +196,17 @@ clusterCellFrequencies <- function(densities, p, nrep=30, min_CF=0.1,verbose=T, 
 }
 
 
-.addTo3DPlot <- function(count,clusterM,freq,color,myPlot, zlim=NULL,N=200){
-  X=(count+1):(count+nrow(clusterM))
-  updatecount=count+nrow(clusterM);
-  addV=TRUE;
-  if(count==0){
-    addV=FALSE;
-  }
-  persp3d(as.numeric(X),as.numeric(freq),clusterM,col=color,aspect=c(5/N, 1, 0.5), add=addV,
-          xlab="Mutation", ylab="cell-frequency", zlab="Probability", zlim=zlim);
-  return(updatecount);
-}
+#.addTo3DPlot <- function(count,clusterM,freq,color,myPlot){
+#X=(count+1):(count+nrow(clusterM))
+#updatecount=count+nrow(clusterM);
+#addV=TRUE;
+#if(count==0){
+#  addV=FALSE;
+#}
+#persp3d(as.numeric(X),as.numeric(freq),clusterM,col=color,aspect=c(1, 1, 0.5), add=addV,
+#                  xlab="Mutation", ylab="cell-frequency", zlab="Probability");
+#return(updatecount);
+#}
 
 .collapseSimilar <-function(SPs,p){
   isNaNIdx=which(is.na(SPs[,"Mean Weighted"]));
