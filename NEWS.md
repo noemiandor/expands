@@ -1,3 +1,11 @@
+		CHANGES IN EXPANDS VERSION 2.1.2
+
+BUG FIXES
+
+    o Corrected installation errors with Java 10.
+
+
+
 		CHANGES IN EXPANDS VERSION 2.1.1
 
 BUG FIXES

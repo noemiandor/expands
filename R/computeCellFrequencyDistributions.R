@@ -1,4 +1,4 @@
-computeCellFrequencyDistributions<-function(dm, max_PM=6, p, min_CF=0.1, ploidy = 2, nc = 1, v = T){
+computeCellFrequencyDistributions<-function(dm, max_PM=6, p, min_CF=0.1, ploidy = 2, nc = 1, v = T, enforceCoocurrence=T){
 
   STDOUT = "cCFD.log"
   
@@ -9,7 +9,7 @@ computeCellFrequencyDistributions<-function(dm, max_PM=6, p, min_CF=0.1, ploidy 
   freq=t(seq(min_CF,1,by=p/10));
   
   if(nc==1){
-    output=.oneThreadCellFrequencyDistributions(list(dm=dm, max_PM=max_PM, precision=p, freq=freq, min_CellFreq=min_CF, ploidy=ploidy, verbose=v))
+    output=.oneThreadCellFrequencyDistributions(list(dm=dm, max_PM=max_PM, precision=p, freq=freq, min_CellFreq=min_CF, ploidy=ploidy, verbose=v, enforceCoocurrence=enforceCoocurrence))
   }else{
     ###########################
     ####Parallel processing####
@@ -20,7 +20,7 @@ computeCellFrequencyDistributions<-function(dm, max_PM=6, p, min_CF=0.1, ploidy 
     input=list()
     for(chr in unique(dm[,"chr"])){
       dmx=dm[dm[,"chr"]==chr,,drop=F]
-      input[[as.character(chr)]]=list(dm=dmx, max_PM=max_PM, precision=p, freq=freq, min_CellFreq=min_CF, ploidy=ploidy, verbose=v);
+      input[[as.character(chr)]]=list(dm=dmx, max_PM=max_PM, precision=p, freq=freq, min_CellFreq=min_CF, ploidy=ploidy, verbose=v, enforceCoocurrence=enforceCoocurrence);
     }
     ## Distribute jobs
     results=clusterApply(cl,input,.oneThreadCellFrequencyDistributions)
@@ -50,13 +50,14 @@ computeCellFrequencyDistributions<-function(dm, max_PM=6, p, min_CF=0.1, ploidy 
   norm=T; #varargin$norm
   ploidy=varargin$ploidy
   verbose=varargin$verbose
+  enforceCoocurrence=varargin$enforceCoocurrence
   
   densities=matrix(matrix(NA,nrow(dm),length(freq)),nrow=nrow(dm),ncol=length(freq),dimnames=list(1:nrow(dm),freq));
   success=0; 
   errors=c();
   warnings=c();
   for (k in 1:nrow(dm)){
-    output=try(cellfrequency_pdf(af=dm[k,"AF_Tumor"],cnv=dm[k,"CN_Estimate"], pnb=dm[k,"PN_B"],freq=freq, max_PM=max_PM,ploidy=ploidy),silent=TRUE);
+    output=try(cellfrequency_pdf(af=dm[k,"AF_Tumor"],cnv=dm[k,"CN_Estimate"], pnb=dm[k,"PN_B"],freq=freq, max_PM=max_PM,ploidy=ploidy, enforceCoocurrence=enforceCoocurrence),silent=TRUE);
     if(class(output)=="try-error"){
       errors=rbind(errors,output);
     }else{

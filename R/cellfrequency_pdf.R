@@ -1,11 +1,9 @@
-cellfrequency_pdf <-function(af,cnv,pnb,freq, max_PM=6, ploidy=2){
-
-  enforceCoocurrence=T; 
-  # #No co-occurence assumption violation, unless this is a germline variant:
-  # if(pnb==1){
-  #   enforceCoocurrence=F
-  #   max_PM=2; ##Limit scenarios when dealing with LOH
-  # }
+cellfrequency_pdf <-function(af,cnv,pnb,freq, max_PM=6, ploidy=2, enforceCoocurrence=T){ 
+  #No co-occurence assumption violation, unless this is a germline variant:
+  if(pnb==1){
+    enforceCoocurrence=F
+    max_PM=ploidy; ##Limit scenarios when dealing with LOH
+  }
   
   ###Get cell frequency probability solution for this locus
   .jcall("core.utils.Common","V","setALLOWED_SP_FREQUENCIES",.jarray(as.double(freq)))
