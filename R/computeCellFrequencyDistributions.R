@@ -32,7 +32,6 @@ computeCellFrequencyDistributions<-function(dm, max_PM=6, p, min_CF=0.1, ploidy 
     }
     
     stopCluster(cl)
-    closeAllConnections() 
   }
   return(output)
 }
