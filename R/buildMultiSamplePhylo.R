@@ -72,7 +72,7 @@ buildMultiSamplePhylo<-function (samGr, out, treeAlgorithm="bionjs", e=0, plotF=
   }
   aQ = rbind(aqCBS, aqDM)
   tr = NULL
-  if (class(aQ) == "try-error" || is.null(ncol(aQ))) {
+  if (class(aQ) == "try-error" || !(is.matrix(aQ) || is.data.frame(aQ)) ) {
     print("Error encountered while reconstructing phylogeny")
   }
   else {

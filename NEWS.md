@@ -1,3 +1,8 @@
+		CHANGES IN EXPANDS VERSION 2.1.3
+
+No longer closing all user connections, just stopping the ones opened by expands.
+
+	
 		CHANGES IN EXPANDS VERSION 2.1.2
 
 BUG FIXES

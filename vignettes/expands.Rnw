@@ -134,45 +134,6 @@ Phylogram representation of the inferred relations between three predicted SPs. 
 \end{figure}
 
 \newpage
-\section{Inferring phylogenetic relations between subpopulations from multiple geographical tumor samples}
-Next we integrate the subpoulations predicted in multiple, geographically distinct tumor-samples of a patient into one common phylogeny:
-<<>>=
-#Patient and sample labels
-patient='ID_MRD_001';
-samples=c('_primPancreas','_metKidney','_metLung');
-output=patient;
-#The CBS files for each sample:
-cbs=as.list(paste(patient, samples,'.cbs',sep=""));
-#The SP files for each sample (previously calculated via runExPANdS-function):
-sps=as.list(paste(patient, samples,'.sps',sep=""));
-@
-We build a sample group for this patient to calculate the combined phylogeny:
-<<>>=
-sampleGroup=list(cbs=cbs,sps=sps,labels=samples)
-tr=buildMultiSamplePhylo(sampleGroup,output,e = 0, plotF=0);
-##Tree tip color labels according to sample origin of SPs:
-jet <- colorRampPalette(c("#00007F", "blue", "#007FFF",
-            "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
-colmap = jet( length(sampleGroup$labels) )
-colors <- rep(colmap[1], each = length(tr$tip.label))
-for (i in 1: length(sampleGroup$labels) ) {
-     ii = grep(sampleGroup$labels[[i]], tr$tip.label)
-     colors[ii] = colmap[i]
-}
-@
-Finally plot the inter-sample phylogeny:
-\begin{figure}[htbp]
-\begin{center}
-<<fig=TRUE, width=8, height=6>>=
-plot(tr, tip.col = colors, cex = 0.9, type = "u")
-@
-\caption{\label{f4.3}
-         Phylogram representation of the inferred relations between SPs from three distinct geographical samples. Each branch spans proportional to the amount of copy number change between SPs. The germline copy number profile (assumed diploid throughout the genome) is included as control.
-}
-\end{center}
-\end{figure}
-
-\newpage
 \section{Acknowledgements}
 Special thanks to Dr. Ryan Morin for his contributions that have led to higher accuracy measures during simulations for mutation assignment to subpopulations, as well as advanced visualization features of assigned mutations. Thanks also to Dr. Ruchira S. Datta for her contributions to the structure and presentation of this manuscript.
 
